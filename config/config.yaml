@@ -1,0 +1,16 @@
+http:
+  host: "localhost"
+  port: 8080
+
+db:
+  mysql:
+    url: "localhost"
+    port: 3306
+    database: "short_links"
+    username: "short_links"
+    password: "short_links"
+
+  redis:
+    database: "localhost"
+    port:
+    db: 0
