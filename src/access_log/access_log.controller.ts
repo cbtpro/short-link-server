@@ -1,8 +1,10 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, UseGuards } from "@nestjs/common";
 import { CreateAccessLogDto } from './dto/create-access_logs.dto';
 import { AccessLogService } from "./access_log.service";
 import { AccessLog } from "./access_log.entity";
+import { AuthGuard } from "@nestjs/passport";
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('/access-log')
 export class AccessLogController {
   constructor(private accessLogService: AccessLogService) { }

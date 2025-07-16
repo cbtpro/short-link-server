@@ -13,6 +13,7 @@ import { UserModule } from './user/user.module';
 import { OriginalLinkModule } from './original_link/original_link.module';
 import { ShortLinkModule } from './short_link/short_link.module';
 import { AccessLogModule } from './access_log/access_log.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AccessLogModule } from './access_log/access_log.module';
         };
       },
     }),
+    AuthModule,
     UserModule,
     OriginalLinkModule,
     ShortLinkModule,

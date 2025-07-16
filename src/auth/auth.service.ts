@@ -11,7 +11,7 @@ export class AuthService {
   constructor(
     private dataSource: DataSource,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
   async validateUser(username: string, password: string): Promise<User> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
