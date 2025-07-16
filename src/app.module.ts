@@ -1,11 +1,15 @@
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './config/configuration';
+import EncryptionInterceptor from './interceptor/encryption.interceptor';
+import LoggingInterceptor from './interceptor/logging.interceptor';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { EncryptionService } from '@/services/encryption.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './user/user.module';
+import { UserModule } from './user/user.module';
 import { OriginalLinkModule } from './original_link/original_link.module';
 import { ShortLinkModule } from './short_link/short_link.module';
 import { AccessLogModule } from './access_log/access_log.module';
@@ -42,13 +46,24 @@ import { AccessLogModule } from './access_log/access_log.module';
         };
       },
     }),
-    UsersModule,
+    UserModule,
     OriginalLinkModule,
     ShortLinkModule,
     AccessLogModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    EncryptionService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: EncryptionInterceptor,
+    },
+    AppService,
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
