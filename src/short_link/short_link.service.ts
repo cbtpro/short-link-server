@@ -15,11 +15,11 @@ export class ShortLinkService {
     return this.shortLinkRepository.find();
   }
 
-  findOne(uuid: number): Promise<ShortLink | null> {
+  findOne(uuid: string): Promise<ShortLink | null> {
     return this.shortLinkRepository.findOneBy({ uuid });
   }
 
-  async remove(uuid: number): Promise<void> {
+  async remove(uuid: string): Promise<void> {
     await this.shortLinkRepository.delete(uuid);
   }
 }

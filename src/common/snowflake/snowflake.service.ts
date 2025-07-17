@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import FlakeId from 'flake-idgen';
+const FlakeId = require('flake-idgen');
 
 @Injectable()
 export class SnowflakeService {
-  private flake: FlakeId;
+  private flake: typeof FlakeId;
 
   constructor() {
     const datacenterId = Number(process.env.DATACENTER_ID || 1);
@@ -14,7 +14,7 @@ export class SnowflakeService {
 
     this.flake = new FlakeId({
       id,
-      epoch: 1609459200000, // 自定义起点（如 2021-01-01）
+      // epoch: 1609459200000, // 自定义起点（如 2021-01-01）
     });
   }
 

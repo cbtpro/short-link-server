@@ -1,9 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, PrimaryColumn } from 'typeorm';
 
-@Entity()
-export class BaseEntity {
+export abstract class BaseEntity {
   @PrimaryColumn('bigint')
-  uuid: number;
+  uuid: string;
   @Column({ default: 0 })
   revision: number;
   @Column({ name: 'created_by' })
@@ -11,7 +10,7 @@ export class BaseEntity {
   @Column({ name: 'created_time' })
   createdTime: Date;
   @Column({ name: 'updated_by' })
-  updateBy: string;
+  updatedBy: string;
   @Column({ name: 'updated_time' })
-  updateTime: Date;
+  updatedTime: Date;
 }

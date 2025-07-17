@@ -15,11 +15,11 @@ export class AccessLogService {
     return this.accessLogRepository.find();
   }
 
-  findOne(uuid: number): Promise<AccessLog | null> {
+  findOne(uuid: string): Promise<AccessLog | null> {
     return this.accessLogRepository.findOneBy({ uuid });
   }
 
-  async remove(uuid: number): Promise<void> {
+  async remove(uuid: string): Promise<void> {
     await this.accessLogRepository.delete(uuid);
   }
 }

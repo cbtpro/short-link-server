@@ -6,6 +6,9 @@ import { UserController } from './user.controller';
 import { User } from './user.entity';
 import { AuthService } from '@/auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
+import { SnowflakeModule } from '@/common/snowflake/snowflake.module';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from '@/auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +17,8 @@ import { JwtModule } from '@nestjs/jwt';
      */
     TypeOrmModule.forFeature([User]),
     JwtModule,
+    SnowflakeModule,
+    AuthModule,
   ],
   providers: [UserService, AuthService],
   controllers: [UserController],

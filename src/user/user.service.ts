@@ -5,6 +5,7 @@ import { DataSource, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { plainToClass } from 'class-transformer';
 import { ForbiddenException } from '@/exception/forbidden.exception';
+import { SnowflakeService } from '@/common/snowflake/snowflake.service';
 
 @Injectable()
 export class UserService {
@@ -12,17 +13,20 @@ export class UserService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private dataSource: DataSource,
+    private readonly snowflakeService: SnowflakeService,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) { }
 
   findAll(): Promise<User[]> {
     return this.usersRepository.find();
   }
 
-  findOne(uuid: number): Promise<User | null> {
+  findOne(uuid: string): Promise<User | null> {
     return this.usersRepository.findOneBy({ uuid });
   }
 
-  async remove(uuid: number): Promise<void> {
+  async remove(uuid: string): Promise<void> {
     await this.usersRepository.delete(uuid);
   }
 
@@ -48,11 +52,16 @@ export class UserService {
     }
     return false;
   }
-  async registerNewUser(user: IUser): Promise<User> {
+  async registerNewUser(userDto: IUser): Promise<User> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      const user = this.userRepo.create({
+        ...userDto,
+        uuid: this.snowflakeService.generateId(),
+        createdTime: new Date(),
+      });
       const newUser = await queryRunner.manager.save(User, user);
       await queryRunner.commitTransaction();
       // 返回前转换下，去除密码
@@ -63,7 +72,7 @@ export class UserService {
       await queryRunner.rollbackTransaction();
       throw new ForbiddenException(error.message);
     } finally {
-      // 你需要手动实例化并部署一个queryRunner
+      // 需要手动实例化并部署一个queryRunner
       await queryRunner.release();
     }
   }

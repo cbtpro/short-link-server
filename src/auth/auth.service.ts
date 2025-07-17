@@ -5,6 +5,7 @@ import { comparePassword } from '../utils/bcrypt';
 import { plainToClass } from 'class-transformer';
 import { User } from '../user/user.entity';
 import { ForbiddenException } from '../exception/forbidden.exception';
+import { jwtConstants } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) { }
   async validateUser(username: string, password: string): Promise<User> {
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     // await queryRunner.startTransaction();
@@ -42,7 +44,7 @@ export class AuthService {
   async login(user: any) {
     const payload = { username: user.username, sub: user.userId };
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload, { secret: jwtConstants.secret }),
     } as IAuthInfo;
   }
 }

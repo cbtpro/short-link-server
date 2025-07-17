@@ -13,10 +13,11 @@
 // limitations under the License.
 
 interface IAuthInfo {
-  access_token: string;
+  accessToken?: string;
 }
 interface IResponseBody<T> {
-  success: boolean;
+  code: number;
+  error?: string | null;
   message: string;
   data: T;
 }

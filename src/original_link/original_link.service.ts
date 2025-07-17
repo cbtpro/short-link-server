@@ -15,11 +15,11 @@ export class OriginalLinkService {
     return this.originalLinkRepository.find();
   }
 
-  findOne(uuid: number): Promise<OriginalLink | null> {
+  findOne(uuid: string): Promise<OriginalLink | null> {
     return this.originalLinkRepository.findOneBy({ uuid });
   }
 
-  async remove(uuid: number): Promise<void> {
+  async remove(uuid: string): Promise<void> {
     await this.originalLinkRepository.delete(uuid);
   }
 }
