@@ -1,3 +1,10 @@
 interface ISecrityConfig {
-  ['secret-key']: string;
+  ['secret_key']: string;
+}
+
+interface IAuthConfig {
+  jwtAccessSecret: string;
+  jwtRefreshSecret: string;
+  jwtAccessExpiresIn: string;
+  jwtRefreshExpiresIn: string;
 }

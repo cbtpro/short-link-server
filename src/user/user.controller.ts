@@ -1,15 +1,23 @@
 import {
-  Body, Controller, Get, Post, Request, UseGuards
+  Body, Controller, Get, Post, Req, Request, Res, UseGuards
 } from "@nestjs/common";
-import { FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UserService } from "./user.service";
-import { User } from "./user.entity";
+import { CreateUserDto } from '@/user/dto/create-user.dto';
+import { UserService } from "@/user/user.service";
+import { User } from "@/user/user.entity";
 import { SkipAuth } from "@/auth/auth.decorator";
 import { crypt } from "@/utils/bcrypt";
 import { ForbiddenException } from "@/exception/forbidden.exception";
 import { AuthService } from "@/auth/auth.service";
+import { SkipEncryptionInterceptor } from "@/common/decorator/skip-encryption-interceptor.decorator";
+import { UserLoginDto } from "@/user/dto/user-login.dto";
+import { ApiOkResponse } from "@nestjs/swagger";
+import { BaseResponseDto } from "@/common/dto/base-response.dto";
+import { LoginResponseDto } from "@/user/dto/login-response.dto";
+import { LocalAuthGuard } from "@/auth/local-auth.guard";
+import { JwtAuthGuard } from "@/auth/jwt.auth.guard";
+import { SkipResponseInterceptor } from "@/common/interceptor/skip-response.interceptor.decorator";
 
 interface AuthenticatedRequest extends FastifyRequest {
   user: User;
@@ -57,36 +65,68 @@ export class UserController {
 
   @SkipAuth()
   // @UseGuards(LocalAuthGuard)
-  // @UseGuards(AuthGuard('local'))
+  // @SkipEncryptionInterceptor()
   @Post('/auth/login')
-  async login(@Body() user: IUser) {
-    if (!user) {
-      return {
-        code: 0,
-        error: '登录信息不能为空',
-        message: '登录信息不能为空',
-        data: user,
-      };
-    }
+  @ApiOkResponse({
+    description: '登录成功返回 token',
+    type: BaseResponseDto<LoginResponseDto>,
+  })
+  async login(
+    @Body() user: UserLoginDto,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ) {
     const authInfo = await this.authService.login(user);
-    const responseBody: IResponseBody<IAuthInfo> = {
-      code: 0,
-      error: null,
-      message: '登录成功！',
-      data: authInfo,
+    const { accessToken, refreshToken = '' } = authInfo;
+    (response as any).setCookie('refreshToken', refreshToken, {
+      // domain: 'example.com', // same options as before
+      path: '/',
+    });
+    return {
+      accessToken
     };
-    return responseBody;
   }
+
+  @Get('/auth/codes')
+  @UseGuards(JwtAuthGuard)
+  // @UseGuards(LocalAuthGuard)
+  @SkipEncryptionInterceptor()
+  @ApiOkResponse({
+    description: '获取accessCode权限码',
+    type: BaseResponseDto<string>,
+  })
+  async getAccessCode(@Request() req: AuthenticatedRequest) {
+    return '0';
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  // @SkipEncryptionInterceptor()
+  @SkipResponseInterceptor()
+  @Post('/auth/refresh')
+  async refresh(@Req() request: FastifyRequest) {
+    const refreshToken = ((request as any).cookies as any)?.refreshToken;
+    return this.authService.refreshToken(refreshToken);
+  }
+
+  @Post('/auth/logout')
+  // @UseGuards(JwtAuthGuard)
+  // @UseGuards(LocalAuthGuard)
+  @ApiOkResponse({
+    description: '注销',
+    type: BaseResponseDto<string>,
+  })
+  async logout(@Request() req: AuthenticatedRequest) {
+    console.log(req);
+    return '登出成功';
+  }
+
+
 
   @UseGuards(AuthGuard('jwt'))
   @Get('/user/info')
   getProfile(@Request() req: AuthenticatedRequest) {
-    const responseBody: IResponseBody<IAuthInfo> = {
-      code: 0,
-      error: null,
-      message: '登录成功！',
-      data: req.user as any,
-    };
-    return responseBody;
+    const { uuid } = req.user;
+    const userInfo = this.userService.findOne(uuid);
+    return userInfo;
+    // return req.user;
   }
 }

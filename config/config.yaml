@@ -1,8 +1,16 @@
 http:
   host: "localhost"
   port: 8080
+app:
+  datacenter_id: 0
+  machine_id: 0
 secret:
-  secret-key: secretKey
+  secret_key: secretKey
+auth:
+  jwtAccessSecret: "access-secret"
+  jwtRefreshSecret: "refresh-secret"
+  jwtAccessExpiresIn: "10s"
+  jwtRefreshExpiresIn: "7d"
 db:
   mysql:
     url: "localhost"

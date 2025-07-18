@@ -12,7 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export const jwtConstants = {
-  secret: 'secretKey',
-  // secret: process.env.JWT_SECRET as string
+import { ConfigService } from "@nestjs/config";
+
+export const getJwtConstants = (configService: ConfigService) => {
+  const authConfig = configService.get<IAuthConfig>('auth');
+  const {
+    jwtAccessSecret = "access-secret",
+    jwtRefreshSecret = "refresh-secret",
+    jwtAccessExpiresIn = "15m",
+    jwtRefreshExpiresIn = "7d",
+  } = authConfig ?? {};
+  return {
+    secret: jwtAccessSecret,
+    jwtAccessExpiresIn,
+    jwtRefreshSecret,
+    jwtRefreshExpiresIn,
+  };
 };

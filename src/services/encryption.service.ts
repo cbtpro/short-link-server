@@ -32,12 +32,12 @@ export class EncryptionService {
   encryptData(data: any): string {
     return CryptoJS.AES.encrypt(
       JSON.stringify(data),
-      this.secrityConfig['secret-key'],
+      this.secrityConfig['secret_key'],
     ).toString();
   }
 
   decryptData(ciphertext: string): any {
-    const bytes = CryptoJS.AES.decrypt(ciphertext, this.secrityConfig['secret-key']);
+    const bytes = CryptoJS.AES.decrypt(ciphertext, this.secrityConfig['secret_key']);
     return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
   }
 }

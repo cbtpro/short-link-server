@@ -14,6 +14,7 @@
 
 interface IAuthInfo {
   accessToken?: string;
+  refreshToken?: string;
 }
 interface IResponseBody<T> {
   code: number;

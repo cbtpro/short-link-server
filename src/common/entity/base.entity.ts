@@ -1,8 +1,11 @@
+import { Exclude } from 'class-transformer';
 import { Entity, Column, PrimaryGeneratedColumn, OneToMany, PrimaryColumn } from 'typeorm';
 
 export abstract class BaseEntity {
   @PrimaryColumn('bigint')
   uuid: string;
+
+  @Exclude()
   @Column({ default: 0 })
   revision: number;
   @Column({ name: 'created_by' })

@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
-import { SkipEncryptionInterceptor } from './common/decorator/skip-encryption-interceptor.decorator';
+import { AppService } from '@/app.service';
+import { SkipEncryptionInterceptor } from '@/common/decorator/skip-encryption-interceptor.decorator';
 
 @Controller()
 export class AppController {

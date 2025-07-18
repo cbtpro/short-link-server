@@ -5,25 +5,25 @@ import { comparePassword } from '../utils/bcrypt';
 import { plainToClass } from 'class-transformer';
 import { User } from '../user/user.entity';
 import { ForbiddenException } from '../exception/forbidden.exception';
-import { jwtConstants } from './constants';
+import { getJwtConstants } from './constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private dataSource: DataSource,
     private readonly jwtService: JwtService,
+    private configService: ConfigService,
   ) { }
   async validateUser(username: string, password: string): Promise<User> {
 
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
-    // await queryRunner.startTransaction();
     try {
       const user = await queryRunner.manager
         .createQueryBuilder(User, 'user')
         .where('user.username = :username', { username: username })
         .getOne();
-      // await queryRunner.commitTransaction();
       if (!user) {
         throw new ForbiddenException('用户名或密码错误！');
       }
@@ -35,16 +35,62 @@ export class AuthService {
     } catch (error) {
       console.error(error);
       throw error;
-      // await queryRunner.rollbackTransaction();
     } finally {
-      // 你需要手动实例化并部署一个queryRunner
       await queryRunner.release();
     }
   }
   async login(user: any) {
     const payload = { username: user.username, sub: user.userId };
+
+    const authConfig = this.configService.get<IAuthConfig>('auth');
+    const {
+      jwtAccessSecret,
+      jwtAccessExpiresIn,
+      jwtRefreshSecret,
+      jwtRefreshExpiresIn
+    } = authConfig ?? {};
+    const accessToken = this.jwtService.sign(payload, {
+      secret: jwtAccessSecret,
+      expiresIn: jwtAccessExpiresIn,
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: jwtRefreshSecret,
+      expiresIn: jwtRefreshExpiresIn,
+    });
+
     return {
-      accessToken: this.jwtService.sign(payload, { secret: jwtConstants.secret }),
+      accessToken,
+      refreshToken,
     } as IAuthInfo;
   }
+
+  async refreshToken(token: string) {
+    try {
+      const authConfig = this.configService.get<IAuthConfig>('auth');
+      const {
+        jwtAccessSecret,
+        jwtAccessExpiresIn,
+        jwtRefreshSecret,
+        jwtRefreshExpiresIn
+      } = authConfig ?? {};
+      const payload = this.jwtService.verify(token, {
+        secret: jwtRefreshSecret,
+      });
+
+      const newAccessToken = this.jwtService.sign(
+        { sub: payload.sub, username: payload.username },
+        {
+          secret: jwtAccessSecret,
+          expiresIn: jwtAccessExpiresIn,
+        },
+      );
+
+      return newAccessToken;
+    } catch (e) {
+      throw new Error('Invalid refresh token');
+    }
+  }
+
+
 }
