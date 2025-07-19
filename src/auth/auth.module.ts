@@ -2,16 +2,17 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './local.strategy';
-// import { UserModule } from '../user/user.module';
 import { AuthService } from './auth.service';
 import { getJwtConstants } from './constants';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UsersService } from '@/users/users.service';
+import { UsersModule } from '@/users/users.module';
 
 @Module({
   imports: [
-    // UserModule,
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    UsersModule,
+    PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,7 +27,15 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       },
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
-  exports: [AuthService],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+  ],
+  /**
+   * 导出给其他模块用
+   */
+  exports: [AuthService, JwtStrategy],
+  controllers: [],
 })
 export class AuthModule { }

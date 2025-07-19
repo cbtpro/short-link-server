@@ -5,14 +5,14 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { FastifyReply } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response | FastifyReply>();
-    const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse<FastifyReply>();
+    const request = ctx.getRequest<FastifyRequest>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = '服务器内部错误';
@@ -20,18 +20,32 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
-      const res: any = exception.getResponse();
-      message = res.message || res;
-      error = res.error || message;
+      const res = exception.getResponse();
+
+      if (typeof res === 'string') {
+        message = res;
+        error = res;
+      } else if (typeof res === 'object' && res !== null) {
+        const resObj = res as Record<string, any>;
+        message = Array.isArray(resObj.message) ? resObj.message[0] : resObj.message || '请求错误';
+        error = resObj.error || message;
+      }
     } else if (exception instanceof Error) {
       message = exception.message;
+      error = exception.name;
     }
+
+    // 打印错误日志（建议仅开发环境）
+    console.error('全局异常:', exception);
+
     const responseBody = {
       code: -1,
-      error: message,
-      message: Array.isArray(message) ? message[0] : message,
+      error,
+      message,
       data: null,
+      
     };
-    (response as FastifyReply).code(status).send(responseBody);
+
+    response.code(status).type('application/json').send(responseBody);
   }
 }

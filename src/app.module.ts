@@ -1,4 +1,4 @@
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,11 +9,12 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { EncryptionService } from '@/services/encryption.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
+import { UsersModule } from './users/users.module';
 import { OriginalLinkModule } from './original_link/original_link.module';
 import { ShortLinkModule } from './short_link/short_link.module';
 import { AccessLogModule } from './access_log/access_log.module';
-// import { AuthModule } from './auth/auth.module';
+import { AuthModule } from '@/auth/auth.module';
+import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
 
 @Module({
   imports: [
@@ -47,8 +48,8 @@ import { AccessLogModule } from './access_log/access_log.module';
         };
       },
     }),
-    // AuthModule,
-    UserModule,
+    AuthModule,
+    UsersModule,
     OriginalLinkModule,
     ShortLinkModule,
     AccessLogModule,
@@ -56,10 +57,20 @@ import { AccessLogModule } from './access_log/access_log.module';
   controllers: [AppController],
   providers: [
     EncryptionService,
+    /**
+     * 注册全局Jwt校验如果不需要校验的，请加@Public，比如登录
+     */
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
+    /**
+     * 注册全局加解密拦截器
+     */
     {
       provide: APP_INTERCEPTOR,
       useClass: EncryptionInterceptor,

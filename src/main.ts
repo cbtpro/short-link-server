@@ -7,8 +7,8 @@ import fastifyCookie from '@fastify/cookie';
 import { AppModule } from './app.module';
 import { logger } from './common/middleware/global.logger.middleware';
 import { ValidationPipe } from '@nestjs/common';
-import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
-import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter';
+// import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
+// import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -27,8 +27,9 @@ async function bootstrap() {
       transform: true,
     }));
 
-  app.useGlobalInterceptors(new ResponseInterceptor());
-  app.useGlobalFilters(new AllExceptionsFilter());
+  const reflector = app.get(Reflector); // 手动获取 Reflector 实例
+  // app.useGlobalInterceptors(new ResponseInterceptor(reflector));
+  // app.useGlobalFilters(new AllExceptionsFilter());
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();

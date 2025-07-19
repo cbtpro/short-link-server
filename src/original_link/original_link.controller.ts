@@ -1,10 +1,9 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
-import { CreateOriginalLinkDto } from './dto/create-original_link.dto';
 import { OriginalLinkService } from "./original_link.service";
 import { OriginalLink } from "./original_link.entity";
-import { AuthGuard } from "@nestjs/passport";
+import { JwtAuthGuard } from "@/auth/jwt.auth.guard";
 
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(JwtAuthGuard)
 @Controller('/original-link')
 export class OriginalLinkController {
   constructor(private originalLinkService: OriginalLinkService) { }

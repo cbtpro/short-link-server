@@ -9,7 +9,7 @@ secret:
 auth:
   jwtAccessSecret: "access-secret"
   jwtRefreshSecret: "refresh-secret"
-  jwtAccessExpiresIn: "10s"
+  jwtAccessExpiresIn: "15s"
   jwtRefreshExpiresIn: "7d"
 db:
   mysql:

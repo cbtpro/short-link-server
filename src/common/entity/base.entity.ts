@@ -1,5 +1,5 @@
 import { Exclude } from 'class-transformer';
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, PrimaryColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, PrimaryColumn, DeleteDateColumn } from 'typeorm';
 
 export abstract class BaseEntity {
   @PrimaryColumn('bigint')
@@ -16,4 +16,9 @@ export abstract class BaseEntity {
   updatedBy: string;
   @Column({ name: 'updated_time' })
   updatedTime: Date;
+  @Column({ default: 1 })
+  enabled: number;
+  deleted: number;
+  // @DeleteDateColumn()
+  // deletedAt?: Date;
 }
