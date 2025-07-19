@@ -36,7 +36,7 @@ export class UsersController {
 
   @Public()
   @Post('auth/register')
-  async register(@Body() user: IUser): Promise<IResponseBody<User>> {
+  async register(@Body() user: UserLoginDto): Promise<IResponseBody<User>> {
     try {
       const password = await crypt(user.password);
       const cryptUser = Object.assign(user, { password });
@@ -63,8 +63,6 @@ export class UsersController {
 
   @Public()
   @UseGuards(LocalAuthGuard)
-  @HttpCode(200)
-  @SkipEncryptionInterceptor()
   @Post('auth/login')
   async login(
     @Body() userDto: IUser,
@@ -90,7 +88,6 @@ export class UsersController {
 
   @Get('auth/codes')
   @UseGuards(JwtAuthGuard)
-  @SkipEncryptionInterceptor()
   @ApiOkResponse({
     description: '获取accessCode权限码',
     type: BaseResponseDto<string>,
@@ -99,7 +96,6 @@ export class UsersController {
     return '0';
   }
 
-  @SkipEncryptionInterceptor()
   @Public()
   @Post('auth/refresh')
   async refresh(
@@ -134,9 +130,9 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('user/info')
-  getProfile(@Request() req: AuthenticatedRequest) {
+  async getProfile(@Request() req: AuthenticatedRequest) {
     const { uuid } = req.user;
-    const userInfo = this.usersService.findUserByUsername(uuid);
+    const userInfo = await this.usersService.findUserByUuid(uuid);
     return userInfo;
     // return req.user;
   }

@@ -74,6 +74,7 @@ export class UsersService {
         ...userDto,
         uuid: this.snowflakeService.generateId(),
         createdTime: new Date(),
+        enabled: 1,
       });
 
       const newUser = await queryRunner.manager.save(User, user);

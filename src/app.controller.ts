@@ -7,13 +7,12 @@ import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
 interface AuthenticatedRequest extends FastifyRequest {
   user: User;
 }
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) { }
 
-  @SkipEncryptionInterceptor()
-  @Get()
+  @Get('hello')
   getHello(): string {
     return this.appService.getHello();
   }

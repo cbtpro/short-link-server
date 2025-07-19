@@ -27,8 +27,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         error = res;
       } else if (typeof res === 'object' && res !== null) {
         const resObj = res as Record<string, any>;
-        message = Array.isArray(resObj.message) ? resObj.message[0] : resObj.message || '请求错误';
-        error = resObj.error || message;
+        message = Array.isArray(resObj.message) ? resObj.message.join(',') : resObj.message || '请求错误';
+        error = message || resObj.error;
       }
     } else if (exception instanceof Error) {
       message = exception.message;
@@ -43,7 +43,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       error,
       message,
       data: null,
-      
+
     };
 
     response.code(status).type('application/json').send(responseBody);

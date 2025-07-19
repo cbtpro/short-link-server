@@ -1,4 +1,4 @@
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -15,6 +15,8 @@ import { ShortLinkModule } from './short_link/short_link.module';
 import { AccessLogModule } from './access_log/access_log.module';
 import { AuthModule } from '@/auth/auth.module';
 import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
+import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
+import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter';
 
 @Module({
   imports: [
@@ -68,13 +70,21 @@ import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter
+    },
     /**
      * 注册全局加解密拦截器
      */
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: EncryptionInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: EncryptionInterceptor,
+    // },
     AppService,
   ],
 })
@@ -82,6 +92,8 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(LoggerMiddleware)
-      .forRoutes({ path: 'cats', method: RequestMethod.GET });
+      .forRoutes('*');
+    // .apply(DecryptMiddleware)
+    // .forRoutes('*');
   }
 }

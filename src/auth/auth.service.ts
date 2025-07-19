@@ -33,7 +33,7 @@ export class AuthService {
     return plainToClass(User, user);
   }
   async signIn(user: User) {
-    const payload = { username: user.username, sub: user.uuid };
+    const payload = { username: user.username, uuid: user.uuid };
 
     const authConfig = this.configService.get<IAuthConfig>('auth');
     const {
@@ -73,14 +73,14 @@ export class AuthService {
       });
 
       // 可以校验用户是否还存在
-      const user = await this.usersService.findUserByUuid(payload.sub);
+      const user = await this.usersService.findUserByUuid(payload.uuid);
       if (!user || user.enabled !== 1 || user?.deleted === 1) {
         throw new UnauthorizedException('用户不存在');
       }
 
       const newPayload = {
         username: user.username,
-        sub: user.uuid, // 或 user.id
+        uuid: user.uuid, // 或 user.id
       };
 
       const accessToken = this.jwtService.sign(newPayload, {
