@@ -1,11 +1,13 @@
 import {
-  Body, Controller, Get, HttpCode, Post, Req, Request, Res, UseGuards
+  Body, Controller, Get, Post, Req, Request, Res, UseGuards
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { UsersService } from "@/users/users.service";
 import { User } from "@/users/users.entity";
 import { Public } from '@/common/decorator/public.decorator';
 import { crypt } from "@/utils/bcrypt";
+import { getJwtConstants } from '@/auth/constants';
 import { ForbiddenException } from "@/exception/forbidden.exception";
 import { AuthService } from "@/auth/auth.service";
 import { SkipEncryptionInterceptor } from "@/common/decorator/skip-encryption-interceptor.decorator";
@@ -25,13 +27,14 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly configService: ConfigService,
   ) { }
 
 
   @UseGuards(JwtAuthGuard)
-  @Get('user/all')
-  async findAll(): Promise<User[]> {
-    return this.usersService.findAll();
+  @Get('user/count')
+  async findAll(): Promise<number> {
+    return this.usersService.findAllUserCount();
   }
 
   @Public()
@@ -62,6 +65,7 @@ export class UsersController {
   }
 
   @Public()
+  @SkipResponseInterceptor()
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
   async login(
@@ -72,6 +76,7 @@ export class UsersController {
     const user = req.user;
     const authInfo = await this.authService.signIn(user);
     const { accessToken, refreshToken } = authInfo;
+    const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 * 1000 } = getJwtConstants(this.configService);
     (response as any)
       .code(200)
       .setCookie('refreshToken', refreshToken, {
@@ -79,7 +84,7 @@ export class UsersController {
         path: '/',
         // expires: 'Wed, 21 Oct 2015 07:28:00 GMT',
         // maxAge: 60_000,
-        maxAge: 30,
+        maxAge: jwtRefreshExpireInSeconds,
       });
     return {
       accessToken
@@ -97,6 +102,8 @@ export class UsersController {
   }
 
   @Public()
+  @SkipEncryptionInterceptor()
+  @SkipResponseInterceptor()
   @Post('auth/refresh')
   async refresh(
     @Req() request: FastifyRequest,
@@ -112,7 +119,7 @@ export class UsersController {
         path: '/',
         // expires: 'Wed, 21 Oct 2015 07:28:00 GMT',
         // maxAge: 60_000,
-        maxAge: 30,
+        maxAge: '15d',
       });
     return accessToken;
   }

@@ -70,21 +70,21 @@ import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter'
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ResponseInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: ResponseInterceptor,
+    // },
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter
     },
     /**
-     * 注册全局加解密拦截器
+     * 注册全局加密拦截器
      */
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: EncryptionInterceptor,
-    // },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: EncryptionInterceptor,
+    },
     AppService,
   ],
 })
@@ -93,7 +93,5 @@ export class AppModule implements NestModule {
     consumer
       .apply(LoggerMiddleware)
       .forRoutes('*');
-    // .apply(DecryptMiddleware)
-    // .forRoutes('*');
   }
 }

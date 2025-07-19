@@ -1,7 +1,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Not, Repository } from 'typeorm';
 import { comparePassword } from '../utils/bcrypt';
 import { User } from './users.entity';
 import { plainToClass } from 'class-transformer';
@@ -33,10 +33,24 @@ export class UsersService {
     });
   }
 
+  async findAllUserCount(): Promise<number> {
+    // const count = await this.usersRepository
+    //   .createQueryBuilder('user')
+    //   .where('user.enabled = :enabled', { enabled: 1 })
+    //   .andWhere('(user.deleted IS NULL OR user.deleted = 0)')
+    //   .getCount();
+    const count = await this.usersRepository.count({
+      where: [
+        { enabled: 1, deleted: undefined },
+        { enabled: 1, deleted: 0 },
+      ],
+    });
+    return count;
+  }
 
   async remove(uuid: string): Promise<void> {
     await this.usersRepository.update({ uuid }, { deleted: 1 });
-  }
+  };
   /**
    * 根据用户名和密码查找用户（用于登录）
    * @param username 用户名
@@ -56,7 +70,7 @@ export class UsersService {
       throw new ForbiddenException('用户不存在或密码错误');
     }
     return user; // 可使用 class-transformer 去除敏感字段
-  }
+  };
   /**
    * 数据库事务提交注册用户
    * @param userDto 用户信息

@@ -1,4 +1,4 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -6,11 +6,9 @@ import {
 import fastifyCookie from '@fastify/cookie';
 import { AppModule } from './app.module';
 import { logger } from '@/common/middleware/global.logger.middleware';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { EncryptionService } from './services/encryption.service';
 import { registerDecryptPlugin } from './common/plugins/fastify-decrypt.plugin';
-// import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
-// import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -36,9 +34,6 @@ async function bootstrap() {
         forbidNonWhitelisted: true,
         transform: true,
       }));
-  // const reflector = app.get(Reflector); // 手动获取 Reflector 实例
-  // app.useGlobalInterceptors(new ResponseInterceptor(reflector));
-  // app.useGlobalFilters(new AllExceptionsFilter());
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();
