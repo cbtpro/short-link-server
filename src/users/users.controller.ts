@@ -112,6 +112,7 @@ export class UsersController {
     const oldRefreshToken = ((request as any).cookies as any)?.refreshToken;
     const authInfo = await this.authService.refreshToken(oldRefreshToken);
     const { accessToken, refreshToken = '' } = authInfo;
+    const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 * 1000 } = getJwtConstants(this.configService);
     (response as any)
       .code(200)
       .setCookie('refreshToken', refreshToken, {
@@ -119,7 +120,7 @@ export class UsersController {
         path: '/',
         // expires: 'Wed, 21 Oct 2015 07:28:00 GMT',
         // maxAge: 60_000,
-        maxAge: '15d',
+        maxAge: jwtRefreshExpireInSeconds,
       });
     return accessToken;
   }
