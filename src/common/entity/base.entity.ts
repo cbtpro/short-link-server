@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { Column, PrimaryColumn } from 'typeorm';
+import { EnabledStatus } from '@/common/constants';
 
 export abstract class BaseEntity {
   @PrimaryColumn('bigint')
@@ -16,7 +17,7 @@ export abstract class BaseEntity {
   updatedBy: string;
   @Column({ name: 'updated_time' })
   updatedTime: Date;
-  @Column({ type: 'int', nullable: false, default: 1 })
+  @Column({ type: 'int', nullable: false, default: EnabledStatus.Enabled })
   enabled: number;
   @Column({ type: 'int', nullable: true, default: null })
   deleted: number | null;

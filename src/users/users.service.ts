@@ -7,6 +7,7 @@ import { User } from './users.entity';
 import { plainToClass } from 'class-transformer';
 import { ForbiddenException } from '@/exception/forbidden.exception';
 import { SnowflakeService } from '@/common/snowflake/snowflake.service';
+import { DeletedStatus, EnabledStatus } from '@/common/constants';
 
 @Injectable()
 export class UsersService {
@@ -41,8 +42,8 @@ export class UsersService {
     //   .getCount();
     const count = await this.usersRepository.count({
       where: [
-        { enabled: 1, deleted: undefined },
-        { enabled: 1, deleted: 0 },
+        { enabled: EnabledStatus.Enabled, deleted: undefined },
+        { enabled: EnabledStatus.Enabled, deleted: DeletedStatus.NotDeleted },
       ],
     });
     return count;
