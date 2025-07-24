@@ -19,9 +19,6 @@ import { LocalAuthGuard } from "@/auth/local-auth.guard";
 import { JwtAuthGuard } from "@/auth/jwt.auth.guard";
 import { SkipResponseInterceptor } from "@/common/interceptor/skip-response.interceptor.decorator";
 
-interface AuthenticatedRequest extends FastifyRequest {
-  user: User;
-}
 @Controller()
 export class UsersController {
   constructor(
