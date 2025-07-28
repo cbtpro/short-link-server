@@ -6,6 +6,7 @@ import { OriginalLink } from './original_link.entity';
 import { QueryOriginalUrlsDto } from './dto/query-original-urls.dto';
 import { BatchCreateOriginalLinkDto, BatchUpdateOriginalLinkDto, CreateOriginalLinkDto, UpdateOriginalLinkDto } from './dto/original_link.dts';
 import { SnowflakeService } from '@/common/snowflake/snowflake.service';
+import { OrderType } from '@/common/dto/pagination-query.dto';
 
 @Injectable()
 export class OriginalLinkService {
@@ -186,6 +187,14 @@ async findAll(query: QueryOriginalUrlsDto) {
     qb.andWhere('url.enabled = :enabled', { enabled: query.enabled });
   }
 
+  // 删除状态
+  if (query.deleted !== undefined) {if (query.deleted === 0) {
+    qb.andWhere('(url.deleted = 0 OR url.deleted IS NULL)');
+  } else if (query.deleted === 1) {
+    qb.andWhere('url.deleted = 1');
+  }
+  }
+
   // 创建者
   if (query.createdBy) {
     qb.andWhere('url.createdBy = :createdBy', { createdBy: query.createdBy });
@@ -207,15 +216,23 @@ async findAll(query: QueryOriginalUrlsDto) {
     });
   }
 
+  // 多字段排序：优先使用 sortList
+  if (Array.isArray(query.sortList) && query.sortList.length > 0) {
+    for (const sortItem of query.sortList) {
+      // 注意字段别名前缀
+      const field = sortItem.field.startsWith('url.') ? sortItem.field : `url.${sortItem.field}`;
+      qb.addOrderBy(field, sortItem.order);
+    }
+  } else {
+    // 向后兼容 orderBy + order（默认 createdTime DESC）
+    const order = query.order ?? OrderType.DESC;
+    const orderBy = query.orderBy ?? 'url.createdTime';
+    qb.orderBy(orderBy, order);
+  }
   // 排序与分页
   const page = query.page ?? 1;
   const pageSize = query.pageSize ?? 20;
-  const order = query.order ?? 'DESC';
-  const orderBy = query.orderBy ?? 'url.createdTime';
-
-  qb.orderBy(orderBy, order);
-  qb.skip((page - 1) * pageSize);
-  qb.take(pageSize);
+  qb.skip((page - 1) * pageSize).take(pageSize);
 
   const [data, total] = await qb.getManyAndCount();
   return { items: data, total };

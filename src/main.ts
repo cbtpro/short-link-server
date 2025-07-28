@@ -25,17 +25,6 @@ async function bootstrap() {
   const fastifyInstance = app.getHttpAdapter().getInstance();
   // 注册解密插件
   registerDecryptPlugin(fastifyInstance, encryptionService);
-  // 处理数组参数
-  app.use((req: any, res: any, next: any) => {
-    for (const key in req.query) {
-      if (key.endsWith('[]')) {
-        const newKey = key.replace('[]', '');
-        req.query[newKey] = req.query[key];
-        delete req.query[key];
-      }
-    }
-    next();
-  });
   app
     .use(logger)
     .useGlobalPipes(

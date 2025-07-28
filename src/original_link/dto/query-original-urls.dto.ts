@@ -1,10 +1,14 @@
 import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
 import { IsOptional, IsString, IsEnum, IsDate, IsArray } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { DeletedStatus } from '@/common/constants';
 
 
 function MultiFormatDateArray() {
   return Transform(({ value }) => {
+    if (!value) {
+      return [];
+    }
     // 如果是已经是数组
     if (Array.isArray(value)) {
       return value.map(v => new Date(v));
@@ -34,6 +38,11 @@ export class QueryOriginalUrlsDto extends PaginationQueryDto {
   @Transform(({ value }) => Number(value))
   @IsEnum(EnabledStatus)
   enabled?: EnabledStatus;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsEnum(DeletedStatus)
+  deleted?: DeletedStatus;
 
   @IsOptional()
   @IsString()

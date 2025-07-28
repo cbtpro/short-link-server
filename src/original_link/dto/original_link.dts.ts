@@ -1,24 +1,11 @@
 import { Type } from "class-transformer";
 import { IsArray, IsDateString, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
 
-/**
- * 创建原始链接
- */
-export class CreateOriginalLinkDto {
-  @IsUrl()
-  originalUrl: string;
-}
-/**s
- *更新原始链接
- */
-export class UpdateOriginalLinkDto {
+abstract class BaseDto {
+  
   @IsString()
   @IsOptional()
   uuid: string;
-
-  @IsUrl()
-  @IsOptional()
-  originalUrl: string;
 
   @IsOptional()
   @IsString()
@@ -46,6 +33,21 @@ export class UpdateOriginalLinkDto {
   @IsOptional()
   @IsNumber()
   deleted?: number;
+}
+/**
+ * 创建原始链接
+ */
+export class CreateOriginalLinkDto extends BaseDto {
+  @IsUrl()
+  originalUrl: string;
+}
+/**s
+ *更新原始链接
+ */
+export class UpdateOriginalLinkDto extends BaseDto {
+  @IsUrl()
+  @IsOptional()
+  originalUrl: string;
 }
 /**
  * 批量创建原始链接

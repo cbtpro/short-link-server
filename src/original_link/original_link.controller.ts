@@ -41,9 +41,8 @@ export class OriginalLinkController {
     return this.originalLinkService.updateBatch(body, updatedBy);
   }
   
-  @Get('query')
-  async findAll(@Query() query: QueryOriginalUrlsDto) {
-    return this.originalLinkService.findAll(query);
+  @Post('query')
+  async findAll(@Body() body: QueryOriginalUrlsDto) {
+    return this.originalLinkService.findAll(body);
   }
-
 }
