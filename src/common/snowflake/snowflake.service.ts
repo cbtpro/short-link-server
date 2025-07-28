@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { SnowflakeConfig } from './snowflake.config';
 const FlakeId = require('flake-idgen');
 
 @Injectable()
@@ -6,15 +7,13 @@ export class SnowflakeService {
   private flake: typeof FlakeId;
 
   constructor() {
-    const datacenterId = Number(process.env.DATACENTER_ID || 1);
-    const machineId = Number(process.env.MACHINE_ID || 1);
-
+    const { datacenterId, machineId } = SnowflakeConfig;
     // 将数据中心 ID 和机器 ID 组合成 10 位 ID
     const id = ((datacenterId & 0x1f) << 5) | (machineId & 0x1f);
 
     this.flake = new FlakeId({
       id,
-      // epoch: 1609459200000, // 自定义起点（如 2021-01-01）
+      epoch: 1300000000000, // 自定义起点（如 2021-01-01）
     });
   }
 
