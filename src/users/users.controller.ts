@@ -73,7 +73,7 @@ export class UsersController {
     const user = req.user;
     const authInfo = await this.authService.signIn(user);
     const { accessToken, refreshToken } = authInfo;
-    const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 * 1000 } = getJwtConstants(this.configService);
+    const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60, jwtRefreshExpiresInDate, jwtRefreshExpiresInExpireAt  } = getJwtConstants(this.configService);
     (response as any)
       .code(200)
       .setCookie('refreshToken', refreshToken, {
@@ -109,7 +109,7 @@ export class UsersController {
     const oldRefreshToken = ((request as any).cookies as any)?.refreshToken;
     const authInfo = await this.authService.refreshToken(oldRefreshToken);
     const { accessToken, refreshToken = '' } = authInfo;
-    const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 * 1000 } = getJwtConstants(this.configService);
+    const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 } = getJwtConstants(this.configService);
     (response as any)
       .code(200)
       .setCookie('refreshToken', refreshToken, {

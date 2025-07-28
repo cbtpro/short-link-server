@@ -15,6 +15,29 @@ export class AuthService {
     private configService: ConfigService,
     private usersService: UsersService,
   ) { }
+
+  private generateTokens(payload: any): IAuthInfo {
+    const authConfig = this.configService.get<IAuthConfig>('auth');
+    const {
+      jwtAccessSecret,
+      jwtAccessExpiresIn,
+      jwtRefreshSecret,
+      jwtRefreshExpiresIn
+    } = authConfig ?? {};
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: jwtAccessSecret,
+      expiresIn: jwtAccessExpiresIn,
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: jwtRefreshSecret,
+      expiresIn: jwtRefreshExpiresIn,
+    });
+
+    return { accessToken, refreshToken } as IAuthInfo;;
+  }
+
   async validateUser(username: string, password: string): Promise<User | null> {
     const user = await this.usersService.findUserByUsername(username);
     if (!user) {
@@ -35,37 +58,15 @@ export class AuthService {
   async signIn(user: User) {
     const payload = { username: user.username, uuid: user.uuid };
 
-    const authConfig = this.configService.get<IAuthConfig>('auth');
-    const {
-      jwtAccessSecret,
-      jwtAccessExpiresIn,
-      jwtRefreshSecret,
-      jwtRefreshExpiresIn
-    } = authConfig ?? {};
-    const accessToken = this.jwtService.sign(payload, {
-      secret: jwtAccessSecret,
-      expiresIn: jwtAccessExpiresIn,
-    });
 
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: jwtRefreshSecret,
-      expiresIn: jwtRefreshExpiresIn,
-    });
-
-    return {
-      accessToken,
-      refreshToken,
-    } as IAuthInfo;
+    return this.generateTokens(payload);
   }
 
   async refreshToken(token: string) {
     try {
       const authConfig = this.configService.get<IAuthConfig>('auth');
       const {
-        jwtAccessSecret,
-        jwtAccessExpiresIn,
         jwtRefreshSecret,
-        jwtRefreshExpiresIn
       } = authConfig ?? {};
 
       const payload = this.jwtService.verify(token, {
@@ -80,24 +81,10 @@ export class AuthService {
 
       const newPayload = {
         username: user.username,
-        uuid: user.uuid, // 或 user.id
+        uuid: user.uuid,
       };
 
-      const accessToken = this.jwtService.sign(newPayload, {
-        secret: jwtAccessSecret,
-        expiresIn: jwtAccessExpiresIn,
-      });
-
-      // 可选：刷新 refreshToken
-      const newRefreshToken = this.jwtService.sign(newPayload, {
-        secret: jwtRefreshSecret,
-        expiresIn: jwtRefreshExpiresIn,
-      });
-
-      return {
-        accessToken,
-        refreshToken: newRefreshToken,
-      } as IAuthInfo;
+      return this.generateTokens(newPayload);
 
     } catch (e) {
       throw new UnauthorizedException('登录信息已失效');
