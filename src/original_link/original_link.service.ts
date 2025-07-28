@@ -17,7 +17,7 @@ export class OriginalLinkService {
     private readonly snowflakeService: SnowflakeService,
   ) { }
 
-  
+
   /**
    * 单条新增原始链接记录
    * @param data - 创建原始链接所需的数据，类型为 CreateOriginalLinkDto
@@ -52,7 +52,7 @@ export class OriginalLinkService {
       return newOriginalLink;
     } catch (error) {
       // 发生错误时，回滚数据库事务
-      await queryRunner.rollbackTransaction(); 
+      await queryRunner.rollbackTransaction();
       // 打印错误日志
       console.error('[createOriginalLink]', error);
 
@@ -65,7 +65,7 @@ export class OriginalLinkService {
       throw new InternalServerErrorException('新增短链接失败');
     } finally {
       // 无论操作成功或失败，都释放查询运行器占用的资源
-      await queryRunner.release(); 
+      await queryRunner.release();
     }
   }
 
@@ -172,78 +172,97 @@ export class OriginalLinkService {
       await queryRunner.release();
     }
   }
-async findAll(query: QueryOriginalUrlsDto) {
-  const qb = this.originalLinkRepository.createQueryBuilder('url');
+  async findAll(query: QueryOriginalUrlsDto) {
+    const qb = this.originalLinkRepository.createQueryBuilder('url');
 
-  // 关键词模糊查询
-  if (query.keyword) {
-    qb.andWhere('url.original_url LIKE :keyword', {
-      keyword: `%${query.keyword}%`,
-    });
-  }
-
-  // 启用状态
-  if (query.enabled !== undefined) {
-    qb.andWhere('url.enabled = :enabled', { enabled: query.enabled });
-  }
-
-  // 删除状态
-  if (query.deleted !== undefined) {if (query.deleted === 0) {
-    qb.andWhere('(url.deleted = 0 OR url.deleted IS NULL)');
-  } else if (query.deleted === 1) {
-    qb.andWhere('url.deleted = 1');
-  }
-  }
-
-  // 创建者
-  if (query.createdBy) {
-    qb.andWhere('url.createdBy = :createdBy', { createdBy: query.createdBy });
-  }
-
-  // 创建时间范围
-  if (Array.isArray(query.createdTime) && query.createdTime.length === 2) {
-    qb.andWhere('url.createdTime BETWEEN :createdStart AND :createdEnd', {
-      createdStart: query.createdTime[0],
-      createdEnd: query.createdTime[1],
-    });
-  }
-
-  // 更新时间范围
-  if (Array.isArray(query.updatedTime) && query.updatedTime.length === 2) {
-    qb.andWhere('url.updatedTime BETWEEN :updatedStart AND :updatedEnd', {
-      updatedStart: query.updatedTime[0],
-      updatedEnd: query.updatedTime[1],
-    });
-  }
-
-  // 多字段排序：优先使用 sortList
-  if (Array.isArray(query.sortList) && query.sortList.length > 0) {
-    for (const sortItem of query.sortList) {
-      // 注意字段别名前缀
-      const field = sortItem.field.startsWith('url.') ? sortItem.field : `url.${sortItem.field}`;
-      qb.addOrderBy(field, sortItem.order);
+    // 关键词模糊查询
+    if (query.keyword) {
+      qb.andWhere('url.original_url LIKE :keyword', {
+        keyword: `%${query.keyword}%`,
+      });
     }
-  } else {
-    // 向后兼容 orderBy + order（默认 createdTime DESC）
-    const order = query.order ?? OrderType.DESC;
-    const orderBy = query.orderBy ?? 'url.createdTime';
-    qb.orderBy(orderBy, order);
-  }
-  // 排序与分页
-  const page = query.page ?? 1;
-  const pageSize = query.pageSize ?? 20;
-  qb.skip((page - 1) * pageSize).take(pageSize);
 
-  const [data, total] = await qb.getManyAndCount();
-  return { items: data, total };
-}
+    // 启用状态
+    if (query.enabled !== undefined) {
+      qb.andWhere('url.enabled = :enabled', { enabled: query.enabled });
+    }
+
+    // 删除状态
+    if (query.deleted !== undefined) {
+      if (query.deleted === 0) {
+        qb.andWhere('(url.deleted = 0 OR url.deleted IS NULL)');
+      } else if (query.deleted === 1) {
+        qb.andWhere('url.deleted = 1');
+      }
+    }
+
+    // 创建者
+    if (query.createdBy) {
+      qb.andWhere('url.createdBy = :createdBy', { createdBy: query.createdBy });
+    }
+
+    // 创建时间范围
+    if (Array.isArray(query.createdTime) && query.createdTime.length === 2) {
+      qb.andWhere('url.createdTime BETWEEN :createdStart AND :createdEnd', {
+        createdStart: query.createdTime[0],
+        createdEnd: query.createdTime[1],
+      });
+    }
+
+    // 更新时间范围
+    if (Array.isArray(query.updatedTime) && query.updatedTime.length === 2) {
+      qb.andWhere('url.updatedTime BETWEEN :updatedStart AND :updatedEnd', {
+        updatedStart: query.updatedTime[0],
+        updatedEnd: query.updatedTime[1],
+      });
+    }
+
+    // 多字段排序：优先使用 sortList
+    if (Array.isArray(query.sortList) && query.sortList.length > 0) {
+      for (const sortItem of query.sortList) {
+        // 注意字段别名前缀
+        const field = sortItem.field.startsWith('url.') ? sortItem.field : `url.${sortItem.field}`;
+        qb.addOrderBy(field, sortItem.order);
+      }
+    } else {
+      // 向后兼容 orderBy + order（默认 createdTime DESC）
+      const order = query.order ?? OrderType.DESC;
+      const orderBy = query.orderBy ?? 'url.createdTime';
+      qb.orderBy(orderBy, order);
+    }
+    // 排序与分页
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    qb.skip((page - 1) * pageSize).take(pageSize);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { items: data, total };
+  }
 
 
   findOne(uuid: string): Promise<OriginalLink | null> {
     return this.originalLinkRepository.findOneBy({ uuid });
   }
 
-  async remove(uuid: string): Promise<void> {
-    await this.originalLinkRepository.delete(uuid);
+  async remove(uuid: string, updatedBy: string): Promise<number | undefined> {
+    const result = await this.originalLinkRepository.update(uuid, {
+      deleted: 1,
+      updatedBy,
+      updatedTime: new Date(),
+    });
+    return result.affected;
+  }
+  async undoRemove(uuid: string, updatedBy: string): Promise<number | undefined> {
+    const link = await this.originalLinkRepository.findOneBy({ uuid });
+    if (!link || link.deleted !== 1) {
+      throw new NotFoundException('记录不存在或未被删除');
+    }
+
+    const result = await this.originalLinkRepository.update(uuid, {
+      deleted: 0,
+      updatedTime: new Date(),
+      updatedBy,
+    });
+    return result.affected;
   }
 }

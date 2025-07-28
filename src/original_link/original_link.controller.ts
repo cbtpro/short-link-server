@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { OriginalLinkService } from "./original_link.service";
 import { OriginalLink } from "./original_link.entity";
 import { JwtAuthGuard } from "@/auth/jwt.auth.guard";
@@ -39,6 +39,19 @@ export class OriginalLinkController {
   updateBatch(@Body() body: BatchUpdateOriginalLinkDto, @Request() req: AuthenticatedRequest) {
     const updatedBy = req.user.uuid;
     return this.originalLinkService.updateBatch(body, updatedBy);
+  }
+
+  @SkipEncryptionInterceptor()
+  @Delete(':uuid')
+  delete(@Param('uuid') uuid: string, @Request() req: AuthenticatedRequest) {
+    const updatedBy = req.user.uuid;
+    return this.originalLinkService.remove(uuid, updatedBy);
+  }
+
+  @Post(':uuid/undo')
+  undoRemove(@Param('uuid') uuid: string, @Request() req: AuthenticatedRequest) {
+    const updatedBy = req.user.uuid;
+    return this.originalLinkService.undoRemove(uuid, updatedBy);
   }
   
   @Post('query')
