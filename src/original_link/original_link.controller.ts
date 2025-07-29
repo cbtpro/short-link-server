@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Request, UseGuards } from "@nestjs/common";
 import { OriginalLinkService } from "./original_link.service";
 import { OriginalLink } from "./original_link.entity";
 import { JwtAuthGuard } from "@/auth/jwt.auth.guard";
@@ -18,7 +18,8 @@ export class OriginalLinkController {
     return this.originalLinkService.create(body, createdBy);
   }
 
-  @Get(':uuid')
+  @Post(':uuid')
+  @HttpCode(200)
   findOne(@Param('uuid') uuid: string) {
     return this.originalLinkService.findOne(uuid);
   }
@@ -56,6 +57,11 @@ export class OriginalLinkController {
   
   @Post('query')
   async findAll(@Body() body: QueryOriginalUrlsDto) {
+    return this.originalLinkService.findAll(body);
+  }
+  
+  @Post('original-link/query')
+  async findSafeAll(@Body() body: QueryOriginalUrlsDto) {
     return this.originalLinkService.findAll(body);
   }
 }

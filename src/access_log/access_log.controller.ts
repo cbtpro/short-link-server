@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { CreateAccessLogDto } from './dto/create-access_logs.dto';
 import { AccessLogService } from "./access_log.service";
 import { AccessLog } from "./access_log.entity";
@@ -11,7 +11,7 @@ import { LocalAuthGuard } from "@/auth/local-auth.guard";
 export class AccessLogController {
   constructor(private accessLogService: AccessLogService) { }
 
-  @Get('/all')
+  @Post('/all')
   async findAll(): Promise<AccessLog[]> {
     return this.accessLogService.findAll();
   }

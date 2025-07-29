@@ -58,11 +58,11 @@ export class OriginalLinkService {
 
       if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
         // mysql | postgres 唯一约束失败
-        throw new ConflictException('该短链接已存在');
+        throw new ConflictException('该链接已存在');
       }
 
       // 抛出内部服务器错误异常，表示新增短链接失败
-      throw new InternalServerErrorException('新增短链接失败');
+      throw new InternalServerErrorException('新增链接失败');
     } finally {
       // 无论操作成功或失败，都释放查询运行器占用的资源
       await queryRunner.release();

@@ -14,7 +14,13 @@ import { SnowflakeModule } from '@/common/snowflake/snowflake.module';
     TypeOrmModule.forFeature([OriginalLink]),
     SnowflakeModule,
   ],
-  providers: [OriginalLinkService],
+  providers: [
+    OriginalLinkService,
+  ],
+  exports: [
+    // 其他模块需要使用 OriginalLinkService 时，导出该服务
+    // OriginalLinkService
+  ],
   controllers: [OriginalLinkController],
 })
 export class OriginalLinkModule { }

@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Get, Post, Req, Request, Res, UseGuards
+  Body, Controller, Get, HttpCode, Post, Req, Request, Res, UseGuards
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -29,7 +29,8 @@ export class UsersController {
 
 
   @UseGuards(JwtAuthGuard)
-  @Get('user/count')
+  @Post('user/count')
+  @HttpCode(200)
   async findAll(): Promise<number> {
     return this.usersService.findAllUserCount();
   }
@@ -88,7 +89,7 @@ export class UsersController {
     };
   }
 
-  @Get('auth/codes')
+  @Post('auth/codes')
   @UseGuards(JwtAuthGuard)
   @ApiOkResponse({
     description: '获取accessCode权限码',
@@ -134,7 +135,8 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('user/info')
+  @Post('user/info')
+  @HttpCode(200)
   async getProfile(@Request() req: AuthenticatedRequest) {
     const { uuid } = req.user;
     const userInfo = await this.usersService.findUserByUuid(uuid);
