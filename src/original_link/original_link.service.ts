@@ -3,7 +3,7 @@ import { ConflictException, Injectable, InternalServerErrorException, NotFoundEx
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { OriginalLink } from './original_link.entity';
-import { QueryOriginalUrlsDto } from './dto/query-original-urls.dto';
+import { QueryOriginalUrlsDto, QueryOriginalUrlsOptionsDto } from './dto/query-original-urls.dto';
 import { BatchCreateOriginalLinkDto, BatchUpdateOriginalLinkDto, CreateOriginalLinkDto, UpdateOriginalLinkDto } from './dto/original_link.dts';
 import { SnowflakeService } from '@/common/snowflake/snowflake.service';
 import { OrderType } from '@/common/dto/pagination-query.dto';
@@ -238,7 +238,28 @@ export class OriginalLinkService {
     const [data, total] = await qb.getManyAndCount();
     return { items: data, total };
   }
+  async findOptions(query: QueryOriginalUrlsOptionsDto) {
+    const qb = this.originalLinkRepository.createQueryBuilder('url');
 
+    if (query.keyword) {
+      qb.andWhere('url.original_url LIKE :keyword', {
+        keyword: `%${query.keyword}%`,
+      });
+    }
+    // 排序与分页
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    qb.skip((page - 1) * pageSize).take(pageSize);
+    const [data, total] = await await qb.getManyAndCount();
+
+    return {
+      items: data.map(item => ({
+        value: item.uuid,
+        label: item.originalUrl,
+      })),
+      total,
+    };
+  }
 
   findOne(uuid: string): Promise<OriginalLink | null> {
     return this.originalLinkRepository.findOneBy({ uuid });

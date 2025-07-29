@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsArray, IsDateString, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
+import { IsArray, IsDateString, IsNumber, IsOptional, IsString, Length, ValidateIf, ValidateNested } from "class-validator";
 
 abstract class BaseDto {
   
@@ -38,15 +38,23 @@ abstract class BaseDto {
  * 创建原始链接
  */
 export class CreateSafeShortLinkDto extends BaseDto {
-  @IsUrl()
+  @ValidateIf((o: CreateSafeShortLinkDto) => {
+    return o.shortCode !== undefined && o.shortCode !== null && o.shortCode.trim() !== '';
+  })
+  @IsString()
+  @Length(1, 200, { message: 'shortCode 长度必须在 1 到 200 个字符之间' })
   shortCode: string;
+
+  @IsString()
+  originalLinkId: string;
 }
 /**s
  *更新原始链接
  */
 export class UpdateSafeShortLinkDto extends BaseDto {
-  @IsUrl()
-  @IsOptional()
+  @ValidateIf((o) => o.shortCode !== undefined && o.shortCode !== null)
+  @IsString()
+  @Length(1, 200, { message: 'shortCode 长度必须在 1 到 200 个字符之间' })
   shortCode: string;
 }
 /**

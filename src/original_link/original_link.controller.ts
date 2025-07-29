@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Reque
 import { OriginalLinkService } from "./original_link.service";
 import { OriginalLink } from "./original_link.entity";
 import { JwtAuthGuard } from "@/auth/jwt.auth.guard";
-import { QueryOriginalUrlsDto } from "./dto/query-original-urls.dto";
+import { QueryOriginalUrlsDto, QueryOriginalUrlsOptionsDto } from "./dto/query-original-urls.dto";
 import { BatchCreateOriginalLinkDto, BatchUpdateOriginalLinkDto, CreateOriginalLinkDto, UpdateOriginalLinkDto } from "./dto/original_link.dts";
 import { SkipEncryptionInterceptor } from "@/common/decorator/skip-encryption-interceptor.decorator";
 import { SkipResponseInterceptor } from "@/common/interceptor/skip-response.interceptor.decorator";
@@ -60,8 +60,8 @@ export class OriginalLinkController {
     return this.originalLinkService.findAll(body);
   }
   
-  @Post('original-link/query')
-  async findSafeAll(@Body() body: QueryOriginalUrlsDto) {
-    return this.originalLinkService.findAll(body);
+  @Post('options')
+  async findSafeAll(@Body() body: QueryOriginalUrlsOptionsDto) {
+    return this.originalLinkService.findOptions(body);
   }
 }

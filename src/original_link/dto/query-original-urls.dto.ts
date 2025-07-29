@@ -62,3 +62,9 @@ export class QueryOriginalUrlsDto extends PaginationQueryDto {
   @IsDate({ each: true })
   updatedTime?: Date[];
 }
+
+export class QueryOriginalUrlsOptionsDto extends PaginationQueryDto {
+  @IsOptional()
+  @IsString()
+  keyword?: string; // 关键词模糊查（url / 描述）
+}
