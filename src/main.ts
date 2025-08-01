@@ -14,7 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({ logger: true }),
-    { abortOnError: false }
+    { abortOnError: false },
   );
 
   await app.register(fastifyCookie, {
@@ -25,14 +25,13 @@ async function bootstrap() {
   const fastifyInstance = app.getHttpAdapter().getInstance();
   // 注册解密插件
   registerDecryptPlugin(fastifyInstance, encryptionService);
-  app
-    .use(logger)
-    .useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }));
+  app.use(logger).useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 bootstrap();

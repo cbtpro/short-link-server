@@ -13,9 +13,9 @@ export abstract class BaseEntity {
   createdBy: string;
   @Column({ name: 'created_time' })
   createdTime: Date;
-  @Column({ name: 'updated_by' })
+  @Column({ name: 'updated_by', default: null, nullable: true })
   updatedBy: string;
-  @Column({ name: 'updated_time' })
+  @Column({ name: 'updated_time', default: null, nullable: true })
   updatedTime: Date;
   @Column({ type: 'int', nullable: false, default: EnabledStatus.Enabled })
   enabled: number;

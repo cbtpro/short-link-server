@@ -18,6 +18,7 @@ db:
     database: "short_links"
     username: "short_links"
     password: "short_links"
+    synchronize: true
 
   redis:
     database: "localhost"

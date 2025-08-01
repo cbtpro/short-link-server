@@ -1,5 +1,5 @@
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './config/configuration';
@@ -15,7 +15,6 @@ import { ShortLinkModule } from './short_link/short_link.module';
 import { AccessLogModule } from './access_log/access_log.module';
 import { AuthModule } from '@/auth/auth.module';
 import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
-import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
 import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter';
 
 @Module({
@@ -28,7 +27,7 @@ import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter'
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         const dbConfig = configService.get<IDBConfig>('db');
         return {
           name: 'short_links',
@@ -46,7 +45,7 @@ import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter'
           /**
            * synchronize会创建表结构，建议关闭
            */
-          // synchronize: true,
+          synchronize: dbConfig?.mysql.synchronize ?? false,
         };
       },
     }),
@@ -76,7 +75,7 @@ import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter'
     // },
     {
       provide: APP_FILTER,
-      useClass: AllExceptionsFilter
+      useClass: AllExceptionsFilter,
     },
     /**
      * 注册全局加密拦截器
@@ -90,8 +89,6 @@ import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter'
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes('*');
+    consumer.apply(LoggerMiddleware).forRoutes('*');
   }
 }

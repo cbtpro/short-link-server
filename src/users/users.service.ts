@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Not, Repository } from 'typeorm';
@@ -16,7 +15,7 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private readonly snowflakeService: SnowflakeService,
-  ) { }
+  ) {}
 
   findAll(): Promise<User[]> {
     return this.usersRepository.find();
@@ -30,7 +29,7 @@ export class UsersService {
   }
   findUserCountByUsername(username: string): Promise<number> {
     return this.usersRepository.count({
-      where: { username }
+      where: { username },
     });
   }
 
@@ -51,13 +50,16 @@ export class UsersService {
 
   async remove(uuid: string): Promise<void> {
     await this.usersRepository.update({ uuid }, { deleted: 1 });
-  };
+  }
   /**
    * 根据用户名和密码查找用户（用于登录）
    * @param username 用户名
    * @param password 密码（明文）
    */
-  async findByUsernameAndPassword(username: string, password: string): Promise<User> {
+  async findByUsernameAndPassword(
+    username: string,
+    password: string,
+  ): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { username },
     });
@@ -71,14 +73,13 @@ export class UsersService {
       throw new ForbiddenException('用户不存在或密码错误');
     }
     return user; // 可使用 class-transformer 去除敏感字段
-  };
+  }
   /**
    * 数据库事务提交注册用户
    * @param userDto 用户信息
    * @returns
    */
   async registerNewUser(userDto: IUser): Promise<User> {
-
     const queryRunner = this.dataSource.createQueryRunner();
 
     await queryRunner.connect();
@@ -89,7 +90,8 @@ export class UsersService {
         ...userDto,
         uuid: this.snowflakeService.generateId(),
         createdTime: new Date(),
-        enabled: 1,
+        createdBy: 'system',
+        enabled: EnabledStatus.Enabled,
       });
 
       const newUser = await queryRunner.manager.save(User, user);
@@ -106,5 +108,4 @@ export class UsersService {
       await queryRunner.release(); // 释放资源
     }
   }
-
 }

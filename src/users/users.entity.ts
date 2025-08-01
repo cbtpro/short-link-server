@@ -5,7 +5,6 @@ import { IsNotEmpty } from 'class-validator';
 
 @Entity('t_user')
 export class User extends BaseEntity {
-
   @IsNotEmpty({ message: '姓名不能为空' })
   @Column({ name: 'real_name' })
   realName: string;
@@ -13,7 +12,7 @@ export class User extends BaseEntity {
   @Column()
   username: string;
 
-  @Column()
+  @Column({ default: null, nullable: true })
   email: string;
 
   @Exclude()
