@@ -16,6 +16,7 @@ import { AccessLogModule } from './access_log/access_log.module';
 import { AuthModule } from '@/auth/auth.module';
 import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
 import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter';
+import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
 
 @Module({
   imports: [
@@ -69,10 +70,10 @@ import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter'
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
     },
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: ResponseInterceptor,
-    // },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,

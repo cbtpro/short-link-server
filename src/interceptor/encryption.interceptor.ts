@@ -12,7 +12,10 @@ import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export default class EncryptionInterceptor implements NestInterceptor {
-  constructor(private readonly encryptionService: EncryptionService, private reflector: Reflector) { }
+  constructor(
+    private readonly encryptionService: EncryptionService,
+    private reflector: Reflector,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     /**
@@ -22,7 +25,7 @@ export default class EncryptionInterceptor implements NestInterceptor {
       SKIP_ENCRYPTION_INTERCEPTOR_KEY,
       [
         context.getHandler(), // 方法上的元数据
-        context.getClass(),   // 控制器上的元数据
+        context.getClass(), // 控制器上的元数据
       ],
     );
 

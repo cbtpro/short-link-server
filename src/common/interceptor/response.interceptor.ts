@@ -11,7 +11,7 @@ import { SKIP_RESPONSE_INTERCEPTOR_KEY } from './skip-response.interceptor.decor
 
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
-  constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     /**
@@ -21,7 +21,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
       SKIP_RESPONSE_INTERCEPTOR_KEY,
       [
         context.getHandler(), // 方法上的元数据
-        context.getClass(),   // 控制器上的元数据
+        context.getClass(), // 控制器上的元数据
       ],
     );
 
@@ -29,12 +29,14 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
       return next.handle(); // 跳过拦截逻辑
     }
     return next.handle().pipe(
-      map((data) => ({
-        code: 0,
-        error: null,
-        message: 'success',
-        data,
-      })),
+      map((data) => {
+        return {
+          code: 0,
+          error: null,
+          message: 'success',
+          data: data as T,
+        };
+      }),
     );
   }
 }

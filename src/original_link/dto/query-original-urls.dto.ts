@@ -1,8 +1,7 @@
 import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
-import { IsOptional, IsString, IsEnum, IsDate, IsArray } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsOptional, IsString, IsEnum, IsDate } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { DeletedStatus } from '@/common/constants';
-
 
 function MultiFormatDateArray() {
   return Transform(({ value }) => {
@@ -11,12 +10,12 @@ function MultiFormatDateArray() {
     }
     // 如果是已经是数组
     if (Array.isArray(value)) {
-      return value.map(v => new Date(v));
+      return value.map((v) => new Date(v));
     }
 
     // 如果是以逗号分隔的字符串
     if (typeof value === 'string' && value.includes(',')) {
-      return value.split(',').map(v => new Date(v));
+      return value.split(',').map((v) => new Date(v));
     }
 
     // 单个字符串情况

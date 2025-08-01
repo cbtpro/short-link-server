@@ -1,5 +1,4 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { comparePassword } from '@/utils/bcrypt';
 import { plainToClass } from 'class-transformer';
@@ -14,15 +13,18 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private configService: ConfigService,
     private usersService: UsersService,
-  ) { }
+  ) {}
 
-  private generateTokens(payload: any): IAuthInfo {
+  private generateTokens(payload: {
+    username: string;
+    uuid: string;
+  }): IAuthInfo {
     const authConfig = this.configService.get<IAuthConfig>('auth');
     const {
       jwtAccessSecret,
       jwtAccessExpiresIn,
       jwtRefreshSecret,
-      jwtRefreshExpiresIn
+      jwtRefreshExpiresIn,
     } = authConfig ?? {};
 
     const accessToken = this.jwtService.sign(payload, {
@@ -35,7 +37,7 @@ export class AuthService {
       expiresIn: jwtRefreshExpiresIn,
     });
 
-    return { accessToken, refreshToken } as IAuthInfo;;
+    return { accessToken, refreshToken } as IAuthInfo;
   }
 
   async validateUser(username: string, password: string): Promise<User | null> {
@@ -55,9 +57,8 @@ export class AuthService {
     }
     return plainToClass(User, user);
   }
-  async signIn(user: User) {
+  signIn(user: User) {
     const payload = { username: user.username, uuid: user.uuid };
-
 
     return this.generateTokens(payload);
   }
@@ -65,18 +66,15 @@ export class AuthService {
   async refreshToken(token: string) {
     try {
       const authConfig = this.configService.get<IAuthConfig>('auth');
-      const {
-        jwtRefreshSecret,
-      } = authConfig ?? {};
+      const { jwtRefreshSecret } = authConfig ?? {};
 
-      const payload = this.jwtService.verify(token, {
+      const payload = this.jwtService.verify<{ uuid: string }>(token, {
         secret: jwtRefreshSecret,
       });
 
-      // 可以校验用户是否还存在
       const user = await this.usersService.findUserByUuid(payload.uuid);
-      if (!user || user.enabled !== 1 || user?.deleted === 1) {
-        throw new UnauthorizedException('用户不存在');
+      if (!user || user.enabled !== 1 || user.deleted === 1) {
+        throw new UnauthorizedException('用户不存在或已被禁用');
       }
 
       const newPayload = {
@@ -85,9 +83,10 @@ export class AuthService {
       };
 
       return this.generateTokens(newPayload);
-
-    } catch (e) {
-      throw new UnauthorizedException('登录信息已失效');
+    } catch (error) {
+      console.error(error);
+      // 只抛简洁信息，避免泄露内部堆栈
+      throw new UnauthorizedException('刷新令牌无效或已过期');
     }
   }
 }

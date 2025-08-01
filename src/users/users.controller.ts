@@ -6,10 +6,11 @@ import {
   Req,
   Request,
   Res,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest, FastifyRequestContext } from 'fastify';
 import { UsersService } from '@/users/users.service';
 import { User } from '@/users/users.entity';
 import { Public } from '@/common/decorator/public.decorator';
@@ -25,6 +26,10 @@ import { LocalAuthGuard } from '@/auth/local-auth.guard';
 import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
 import { SkipResponseInterceptor } from '@/common/interceptor/skip-response.interceptor.decorator';
 
+interface RequestWithCookies extends FastifyRequest {
+  cookies: Record<string, string>;
+}
+
 @Controller()
 export class UsersController {
   constructor(
@@ -33,6 +38,7 @@ export class UsersController {
     private readonly configService: ConfigService,
   ) {}
 
+  @SkipEncryptionInterceptor()
   @UseGuards(JwtAuthGuard)
   @Post('user/count')
   @HttpCode(200)
@@ -63,16 +69,20 @@ export class UsersController {
       }
     } catch (error) {
       console.error(error);
-      throw new ForbiddenException(error.message);
+
+      if (error instanceof Error) {
+        throw new ForbiddenException(error.message);
+      }
+
+      throw new ForbiddenException('注册失败，发生未知错误');
     }
   }
 
   @Public()
-  @SkipResponseInterceptor()
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
   async login(
-    @Request() req: AuthenticatedRequest,
+    @Request() req: AuthenticatedRequest<User>,
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
     const user = req.user;
@@ -81,7 +91,7 @@ export class UsersController {
     const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 } = getJwtConstants(
       this.configService,
     );
-    (response as any).code(200).setCookie('refreshToken', refreshToken, {
+    response.code(200).setCookie('refreshToken', refreshToken as string, {
       // domain: 'example.com', // same options as before
       path: '/',
       // expires: 'Wed, 21 Oct 2015 07:28:00 GMT',
@@ -99,7 +109,7 @@ export class UsersController {
     description: '获取accessCode权限码',
     type: BaseResponseDto<string>,
   })
-  async getAccessCode() {
+  getAccessCode() {
     return '0';
   }
 
@@ -111,13 +121,17 @@ export class UsersController {
     @Req() request: FastifyRequest,
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
-    const oldRefreshToken = ((request as any).cookies as any)?.refreshToken;
+    const oldRefreshToken = request.cookies.refreshToken;
+
+    if (!oldRefreshToken) {
+      throw new UnauthorizedException('未提供刷新令牌');
+    }
     const authInfo = await this.authService.refreshToken(oldRefreshToken);
     const { accessToken, refreshToken = '' } = authInfo;
     const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 } = getJwtConstants(
       this.configService,
     );
-    (response as any).code(200).setCookie('refreshToken', refreshToken, {
+    response.code(200).setCookie('refreshToken', refreshToken, {
       // domain: 'example.com', // same options as before
       path: '/',
       // expires: 'Wed, 21 Oct 2015 07:28:00 GMT',
@@ -133,7 +147,7 @@ export class UsersController {
     description: '注销',
     type: BaseResponseDto<string>,
   })
-  logout(@Request() req: AuthenticatedRequest) {
+  logout(@Request() req: AuthenticatedRequest<User>) {
     console.log(req);
     return '登出成功';
   }
@@ -141,7 +155,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Post('user/info')
   @HttpCode(200)
-  async getProfile(@Request() req: AuthenticatedRequest) {
+  async getProfile(@Request() req: AuthenticatedRequest<User>) {
     const { uuid } = req.user;
     const userInfo = await this.usersService.findUserByUuid(uuid);
     return userInfo;

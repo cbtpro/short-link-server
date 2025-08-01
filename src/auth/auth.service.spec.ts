@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthService } from './auth.service';
+import { AuthService } from '@/auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 
 describe('AuthService', () => {
@@ -31,6 +31,7 @@ describe('AuthService', () => {
   it('should return a signed token', () => {
     const token = authService.validateUser('test', 'test');
     expect(token).toBe('signed-token');
-    expect(jwtService.sign).toHaveBeenCalledWith({ data: 'test' });
+    const sign = jwtService.sign.bind(jwtService);
+    expect(sign).toHaveBeenCalledWith({ data: 'test' });
   });
 });

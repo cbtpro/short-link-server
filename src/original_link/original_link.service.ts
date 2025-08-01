@@ -1,12 +1,24 @@
-
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { OriginalLink } from './original_link.entity';
-import { QueryOriginalUrlsDto, QueryOriginalUrlsOptionsDto } from './dto/query-original-urls.dto';
-import { BatchCreateOriginalLinkDto, BatchUpdateOriginalLinkDto, CreateOriginalLinkDto, UpdateOriginalLinkDto } from './dto/original_link.dts';
+import {
+  QueryOriginalUrlsDto,
+  QueryOriginalUrlsOptionsDto,
+} from './dto/query-original-urls.dto';
+import {
+  BatchCreateOriginalLinkDto,
+  BatchUpdateOriginalLinkDto,
+  CreateOriginalLinkDto,
+  UpdateOriginalLinkDto,
+} from './dto/original_link.dts';
 import { SnowflakeService } from '@/common/snowflake/snowflake.service';
 import { OrderType } from '@/common/dto/pagination-query.dto';
+import { DeletedStatus } from '@/common/constants';
 
 @Injectable()
 export class OriginalLinkService {
@@ -15,15 +27,17 @@ export class OriginalLinkService {
     private originalLinkRepository: Repository<OriginalLink>,
     private dataSource: DataSource,
     private readonly snowflakeService: SnowflakeService,
-  ) { }
-
+  ) {}
 
   /**
    * 单条新增原始链接记录
    * @param data - 创建原始链接所需的数据，类型为 CreateOriginalLinkDto
    * @returns 新增成功后的原始链接记录，类型为 OriginalLink
    */
-  async create(data: CreateOriginalLinkDto, createdBy: string): Promise<OriginalLink> {
+  async create(
+    data: CreateOriginalLinkDto,
+    createdBy?: string,
+  ): Promise<OriginalLink> {
     // 创建一个查询运行器，用于管理数据库事务
     const queryRunner = this.dataSource.createQueryRunner();
 
@@ -39,11 +53,13 @@ export class OriginalLinkService {
         uuid: this.snowflakeService.generateId(),
         createdTime: new Date(),
         createdBy,
-        enabled: 1,
       });
 
       // 使用查询运行器的管理器保存新创建的原始链接实体
-      const newOriginalLink = await queryRunner.manager.save(OriginalLink, originalLink);
+      const newOriginalLink = await queryRunner.manager.save(
+        OriginalLink,
+        originalLink,
+      );
 
       // 提交数据库事务
       await queryRunner.commitTransaction();
@@ -56,13 +72,8 @@ export class OriginalLinkService {
       // 打印错误日志
       console.error('[createOriginalLink]', error);
 
-      if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
-        // mysql | postgres 唯一约束失败
-        throw new ConflictException('该链接已存在');
-      }
-
       // 抛出内部服务器错误异常，表示新增短链接失败
-      throw new InternalServerErrorException('新增链接失败');
+      throw new InternalServerErrorException(error, '新增链接失败');
     } finally {
       // 无论操作成功或失败，都释放查询运行器占用的资源
       await queryRunner.release();
@@ -70,7 +81,10 @@ export class OriginalLinkService {
   }
 
   // 批量新增
-  async createBatch(datas: BatchCreateOriginalLinkDto, createdBy: string): Promise<OriginalLink[]> {
+  async createBatch(
+    datas: BatchCreateOriginalLinkDto,
+    createdBy?: string,
+  ): Promise<OriginalLink[]> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -97,23 +111,26 @@ export class OriginalLinkService {
     } catch (error: any) {
       await queryRunner.rollbackTransaction();
       console.error('[createBatchOriginalLink]', error);
-      if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
-        throw new ConflictException('批量新增失败，存在重复短链接');
-      }
-      throw new InternalServerErrorException('批量新增失败');
+      throw new InternalServerErrorException(error, '批量新增失败');
     } finally {
       await queryRunner.release();
     }
   }
 
   // 单条更新
-  async update(uuid: string, data: UpdateOriginalLinkDto, updatedBy: string): Promise<OriginalLink> {
+  async update(
+    uuid: string,
+    data: UpdateOriginalLinkDto,
+    updatedBy?: string,
+  ): Promise<OriginalLink> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const existing = await queryRunner.manager.findOne(OriginalLink, { where: { uuid } });
+      const existing = await queryRunner.manager.findOne(OriginalLink, {
+        where: { uuid },
+      });
       if (!existing) {
         throw new NotFoundException(`短链接 ${uuid} 不存在`);
       }
@@ -128,18 +145,18 @@ export class OriginalLinkService {
     } catch (error: any) {
       await queryRunner.rollbackTransaction();
       console.error('[updateOriginalLink]', error);
-      if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
-        throw new ConflictException('更新失败，存在重复短链接');
-      }
       if (error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('更新失败');
+      throw new InternalServerErrorException(error, '更新失败');
     } finally {
       await queryRunner.release();
     }
   }
 
   // 批量更新（根据 uuid 批量修改）
-  async updateBatch(datas: BatchUpdateOriginalLinkDto, updatedBy: string): Promise<OriginalLink[]> {
+  async updateBatch(
+    datas: BatchUpdateOriginalLinkDto,
+    updatedBy?: string,
+  ): Promise<OriginalLink[]> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -147,14 +164,20 @@ export class OriginalLinkService {
     try {
       const updatedEntities = [];
       for (const originalLink of datas.items) {
-        const existing = await queryRunner.manager.findOne(OriginalLink, { where: { uuid: originalLink.uuid } });
+        const existing = await queryRunner.manager.findOne(OriginalLink, {
+          where: { uuid: originalLink.uuid },
+        });
         if (!existing) {
           throw new NotFoundException(`短链接 ${originalLink.uuid} 不存在`);
         }
-        const updated = this.originalLinkRepository.merge(existing, originalLink, {
-          updatedTime: new Date(),
-          updatedBy,
-        });
+        const updated = this.originalLinkRepository.merge(
+          existing,
+          originalLink,
+          {
+            updatedTime: new Date(),
+            updatedBy,
+          },
+        );
         const saved = await queryRunner.manager.save(OriginalLink, updated);
         updatedEntities.push(saved);
       }
@@ -163,11 +186,8 @@ export class OriginalLinkService {
     } catch (error: any) {
       await queryRunner.rollbackTransaction();
       console.error('[updateBatchOriginalLink]', error);
-      if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
-        throw new ConflictException('批量更新失败，存在重复短链接');
-      }
       if (error instanceof NotFoundException) throw error;
-      throw new InternalServerErrorException('批量更新失败');
+      throw new InternalServerErrorException(error, '批量更新失败');
     } finally {
       await queryRunner.release();
     }
@@ -189,9 +209,9 @@ export class OriginalLinkService {
 
     // 删除状态
     if (query.deleted !== undefined) {
-      if (query.deleted === 0) {
+      if (query.deleted === DeletedStatus.NotDeleted) {
         qb.andWhere('(url.deleted = 0 OR url.deleted IS NULL)');
-      } else if (query.deleted === 1) {
+      } else if (query.deleted === DeletedStatus.Deleted) {
         qb.andWhere('url.deleted = 1');
       }
     }
@@ -221,7 +241,9 @@ export class OriginalLinkService {
     if (Array.isArray(query.sortList) && query.sortList.length > 0) {
       for (const sortItem of query.sortList) {
         // 注意字段别名前缀
-        const field = sortItem.field.startsWith('url.') ? sortItem.field : `url.${sortItem.field}`;
+        const field = sortItem.field.startsWith('url.')
+          ? sortItem.field
+          : `url.${sortItem.field}`;
         qb.addOrderBy(field, sortItem.order);
       }
     } else {
@@ -250,10 +272,10 @@ export class OriginalLinkService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     qb.skip((page - 1) * pageSize).take(pageSize);
-    const [data, total] = await await qb.getManyAndCount();
+    const [data, total] = await qb.getManyAndCount();
 
     return {
-      items: data.map(item => ({
+      items: data.map((item) => ({
         value: item.uuid,
         label: item.originalUrl,
       })),
@@ -265,7 +287,7 @@ export class OriginalLinkService {
     return this.originalLinkRepository.findOneBy({ uuid });
   }
 
-  async remove(uuid: string, updatedBy: string): Promise<number | undefined> {
+  async remove(uuid: string, updatedBy?: string): Promise<number | undefined> {
     const result = await this.originalLinkRepository.update(uuid, {
       deleted: 1,
       updatedBy,
@@ -273,7 +295,10 @@ export class OriginalLinkService {
     });
     return result.affected;
   }
-  async undoRemove(uuid: string, updatedBy: string): Promise<number | undefined> {
+  async undoRemove(
+    uuid: string,
+    updatedBy?: string,
+  ): Promise<number | undefined> {
     const link = await this.originalLinkRepository.findOneBy({ uuid });
     if (!link || link.deleted !== 1) {
       throw new NotFoundException('记录不存在或未被删除');

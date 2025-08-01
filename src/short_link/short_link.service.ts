@@ -1,5 +1,8 @@
-
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { ShortLink } from './short_link.entity';
@@ -15,14 +18,17 @@ export class ShortLinkService {
     private shortLinkRepository: Repository<ShortLink>,
     private dataSource: DataSource,
     private readonly snowflakeService: SnowflakeService,
-  ) { }
+  ) {}
 
   /**
    * 单条新增原始链接记录
    * @param data - 创建原始链接所需的数据，类型为 CreateOriginalLinkDto
    * @returns 新增成功后的原始链接记录，类型为 OriginalLink
    */
-  async create(data: CreateSafeShortLinkDto, createdBy: string): Promise<ShortLink> {
+  async create(
+    data: CreateSafeShortLinkDto,
+    createdBy?: string,
+  ): Promise<ShortLink> {
     // 创建一个查询运行器，用于管理数据库事务
     const queryRunner = this.dataSource.createQueryRunner();
 
@@ -38,11 +44,13 @@ export class ShortLinkService {
         uuid: this.snowflakeService.generateId(),
         createdTime: new Date(),
         createdBy,
-        enabled: 1,
       });
 
       // 使用查询运行器的管理器保存新创建的原始链接实体
-      const newOriginalLink = await queryRunner.manager.save(ShortLink, originalLink);
+      const newOriginalLink = await queryRunner.manager.save(
+        ShortLink,
+        originalLink,
+      );
 
       // 提交数据库事务
       await queryRunner.commitTransaction();
@@ -69,69 +77,71 @@ export class ShortLinkService {
   }
   async findAll(query: QuerySafeShortUrlsDto) {
     const qb = this.shortLinkRepository.createQueryBuilder('url');
-    
-        // 关键词模糊查询
-        if (query.keyword) {
-          qb.andWhere('url.short_code LIKE :keyword', {
-            keyword: `%${query.keyword}%`,
-          });
-        }
-    
-        // 启用状态
-        if (query.enabled !== undefined) {
-          qb.andWhere('url.enabled = :enabled', { enabled: query.enabled });
-        }
-    
-        // 删除状态
-        if (query.deleted !== undefined) {
-          if (query.deleted === 0) {
-            qb.andWhere('(url.deleted = 0 OR url.deleted IS NULL)');
-          } else if (query.deleted === 1) {
-            qb.andWhere('url.deleted = 1');
-          }
-        }
-    
-        // 创建者
-        if (query.createdBy) {
-          qb.andWhere('url.createdBy = :createdBy', { createdBy: query.createdBy });
-        }
-    
-        // 创建时间范围
-        if (Array.isArray(query.createdTime) && query.createdTime.length === 2) {
-          qb.andWhere('url.createdTime BETWEEN :createdStart AND :createdEnd', {
-            createdStart: query.createdTime[0],
-            createdEnd: query.createdTime[1],
-          });
-        }
-    
-        // 更新时间范围
-        if (Array.isArray(query.updatedTime) && query.updatedTime.length === 2) {
-          qb.andWhere('url.updatedTime BETWEEN :updatedStart AND :updatedEnd', {
-            updatedStart: query.updatedTime[0],
-            updatedEnd: query.updatedTime[1],
-          });
-        }
-    
-        // 多字段排序：优先使用 sortList
-        if (Array.isArray(query.sortList) && query.sortList.length > 0) {
-          for (const sortItem of query.sortList) {
-            // 注意字段别名前缀
-            const field = sortItem.field.startsWith('url.') ? sortItem.field : `url.${sortItem.field}`;
-            qb.addOrderBy(field, sortItem.order);
-          }
-        } else {
-          // 向后兼容 orderBy + order（默认 createdTime DESC）
-          const order = query.order ?? OrderType.DESC;
-          const orderBy = query.orderBy ?? 'url.createdTime';
-          qb.orderBy(orderBy, order);
-        }
-        // 排序与分页
-        const page = query.page ?? 1;
-        const pageSize = query.pageSize ?? 20;
-        qb.skip((page - 1) * pageSize).take(pageSize);
-    
-        const [data, total] = await qb.getManyAndCount();
-        return { items: data, total };
+
+    // 关键词模糊查询
+    if (query.keyword) {
+      qb.andWhere('url.short_code LIKE :keyword', {
+        keyword: `%${query.keyword}%`,
+      });
+    }
+
+    // 启用状态
+    if (query.enabled !== undefined) {
+      qb.andWhere('url.enabled = :enabled', { enabled: query.enabled });
+    }
+
+    // 删除状态
+    if (query.deleted !== undefined) {
+      if (query.deleted === 0) {
+        qb.andWhere('(url.deleted = 0 OR url.deleted IS NULL)');
+      } else if (query.deleted === 1) {
+        qb.andWhere('url.deleted = 1');
+      }
+    }
+
+    // 创建者
+    if (query.createdBy) {
+      qb.andWhere('url.createdBy = :createdBy', { createdBy: query.createdBy });
+    }
+
+    // 创建时间范围
+    if (Array.isArray(query.createdTime) && query.createdTime.length === 2) {
+      qb.andWhere('url.createdTime BETWEEN :createdStart AND :createdEnd', {
+        createdStart: query.createdTime[0],
+        createdEnd: query.createdTime[1],
+      });
+    }
+
+    // 更新时间范围
+    if (Array.isArray(query.updatedTime) && query.updatedTime.length === 2) {
+      qb.andWhere('url.updatedTime BETWEEN :updatedStart AND :updatedEnd', {
+        updatedStart: query.updatedTime[0],
+        updatedEnd: query.updatedTime[1],
+      });
+    }
+
+    // 多字段排序：优先使用 sortList
+    if (Array.isArray(query.sortList) && query.sortList.length > 0) {
+      for (const sortItem of query.sortList) {
+        // 注意字段别名前缀
+        const field = sortItem.field.startsWith('url.')
+          ? sortItem.field
+          : `url.${sortItem.field}`;
+        qb.addOrderBy(field, sortItem.order);
+      }
+    } else {
+      // 向后兼容 orderBy + order（默认 createdTime DESC）
+      const order = query.order ?? OrderType.DESC;
+      const orderBy = query.orderBy ?? 'url.createdTime';
+      qb.orderBy(orderBy, order);
+    }
+    // 排序与分页
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 20;
+    qb.skip((page - 1) * pageSize).take(pageSize);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { items: data, total };
   }
 
   findOne(uuid: string): Promise<ShortLink | null> {

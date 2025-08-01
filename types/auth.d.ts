@@ -1,4 +1,3 @@
-
-interface AuthenticatedRequest extends FastifyRequest {
-  user: User;
+interface AuthenticatedRequest<T extends IUser> extends FastifyRequest {
+  user: T;
 }
