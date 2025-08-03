@@ -193,21 +193,20 @@ export class OriginalLinkService {
     }
   }
   async findAll(query: QueryOriginalUrlsDto) {
-    const qb = this.originalLinkRepository.createQueryBuilder('url');
+    const qb = this.originalLinkRepository
+      .createQueryBuilder('url')
+      .leftJoinAndSelect('url.shortLinks', 'shortLink');
 
-    // 关键词模糊查询
     if (query.keyword) {
       qb.andWhere('url.original_url LIKE :keyword', {
         keyword: `%${query.keyword}%`,
       });
     }
 
-    // 启用状态
     if (query.enabled !== undefined) {
       qb.andWhere('url.enabled = :enabled', { enabled: query.enabled });
     }
 
-    // 删除状态
     if (query.deleted !== undefined) {
       if (query.deleted === DeletedStatus.NotDeleted) {
         qb.andWhere('(url.deleted = 0 OR url.deleted IS NULL)');
@@ -216,12 +215,10 @@ export class OriginalLinkService {
       }
     }
 
-    // 创建者
     if (query.createdBy) {
       qb.andWhere('url.createdBy = :createdBy', { createdBy: query.createdBy });
     }
 
-    // 创建时间范围
     if (Array.isArray(query.createdTime) && query.createdTime.length === 2) {
       qb.andWhere('url.createdTime BETWEEN :createdStart AND :createdEnd', {
         createdStart: query.createdTime[0],
@@ -229,7 +226,6 @@ export class OriginalLinkService {
       });
     }
 
-    // 更新时间范围
     if (Array.isArray(query.updatedTime) && query.updatedTime.length === 2) {
       qb.andWhere('url.updatedTime BETWEEN :updatedStart AND :updatedEnd', {
         updatedStart: query.updatedTime[0],
@@ -237,22 +233,19 @@ export class OriginalLinkService {
       });
     }
 
-    // 多字段排序：优先使用 sortList
     if (Array.isArray(query.sortList) && query.sortList.length > 0) {
       for (const sortItem of query.sortList) {
-        // 注意字段别名前缀
         const field = sortItem.field.startsWith('url.')
           ? sortItem.field
           : `url.${sortItem.field}`;
         qb.addOrderBy(field, sortItem.order);
       }
     } else {
-      // 向后兼容 orderBy + order（默认 createdTime DESC）
       const order = query.order ?? OrderType.DESC;
       const orderBy = query.orderBy ?? 'url.createdTime';
       qb.orderBy(orderBy, order);
     }
-    // 排序与分页
+
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 20;
     qb.skip((page - 1) * pageSize).take(pageSize);
@@ -260,6 +253,7 @@ export class OriginalLinkService {
     const [data, total] = await qb.getManyAndCount();
     return { items: data, total };
   }
+
   async findOptions(query: QueryOriginalUrlsOptionsDto) {
     const qb = this.originalLinkRepository.createQueryBuilder('url');
 
@@ -283,6 +277,12 @@ export class OriginalLinkService {
     };
   }
 
+  find(uuid: string): Promise<OriginalLink | null> {
+    const qb = this.originalLinkRepository
+      .createQueryBuilder('url')
+      .leftJoinAndSelect('url.shortLinks', 'shortLink');
+    return qb.where('url.uuid = :uuid', { uuid }).getOne();
+  }
   findOne(uuid: string): Promise<OriginalLink | null> {
     return this.originalLinkRepository.findOneBy({ uuid });
   }

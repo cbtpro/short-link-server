@@ -1,5 +1,4 @@
 export class CreateAccessLogDto {
-
   originalLinkId: string;
 
   shortCode: string;

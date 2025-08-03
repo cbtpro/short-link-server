@@ -1,8 +1,16 @@
-import { Type } from "class-transformer";
-import { IsArray, IsDateString, IsNumber, IsOptional, IsString, Length, ValidateIf, ValidateNested } from "class-validator";
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Length,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 
 abstract class BaseDto {
-  
   @IsString()
   @IsOptional()
   uuid: string;
@@ -39,7 +47,11 @@ abstract class BaseDto {
  */
 export class CreateSafeShortLinkDto extends BaseDto {
   @ValidateIf((o: CreateSafeShortLinkDto) => {
-    return o.shortCode !== undefined && o.shortCode !== null && o.shortCode.trim() !== '';
+    return (
+      o.shortCode !== undefined &&
+      o.shortCode !== null &&
+      o.shortCode.trim() !== ''
+    );
   })
   @IsString()
   @Length(1, 200, { message: 'shortCode 长度必须在 1 到 200 个字符之间' })
@@ -52,10 +64,15 @@ export class CreateSafeShortLinkDto extends BaseDto {
  *更新原始链接
  */
 export class UpdateSafeShortLinkDto extends BaseDto {
-  @ValidateIf((o) => o.shortCode !== undefined && o.shortCode !== null)
+  @ValidateIf(
+    (o: UpdateSafeShortLinkDto) =>
+      o.shortCode !== undefined && o.shortCode !== null,
+  )
   @IsString()
   @Length(1, 200, { message: 'shortCode 长度必须在 1 到 200 个字符之间' })
   shortCode: string;
+  @IsString()
+  originalLinkId: string;
 }
 /**
  * 批量创建原始链接

@@ -1,8 +1,15 @@
-import { Type } from "class-transformer";
-import { IsArray, IsDateString, IsNumber, IsOptional, IsString, IsUrl, ValidateNested } from "class-validator";
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsDateString,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
 
 abstract class BaseDto {
-  
   @IsString()
   @IsOptional()
   uuid: string;

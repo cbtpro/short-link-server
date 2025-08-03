@@ -39,6 +39,7 @@ import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
           password: dbConfig?.mysql.password,
           database: dbConfig?.mysql.database,
           autoLoadEntities: true,
+          logging: false,
           /**
            * 自动扫描所有实体
            */
@@ -81,10 +82,10 @@ import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
     /**
      * 注册全局加密拦截器
      */
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: EncryptionInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: EncryptionInterceptor,
+    // },
     AppService,
   ],
 })

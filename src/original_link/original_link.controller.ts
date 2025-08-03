@@ -24,6 +24,7 @@ import {
 import { SkipEncryptionInterceptor } from '@/common/decorator/skip-encryption-interceptor.decorator';
 
 @UseGuards(JwtAuthGuard)
+@SkipEncryptionInterceptor()
 @Controller('/original-link')
 export class OriginalLinkController {
   constructor(private originalLinkService: OriginalLinkService) {}
@@ -40,7 +41,7 @@ export class OriginalLinkController {
   @Post(':uuid')
   @HttpCode(200)
   findOne(@Param('uuid') uuid: string) {
-    return this.originalLinkService.findOne(uuid);
+    return this.originalLinkService.find(uuid);
   }
 
   @Put(':uuid')
@@ -71,7 +72,6 @@ export class OriginalLinkController {
     return this.originalLinkService.updateBatch(body, updatedBy);
   }
 
-  @SkipEncryptionInterceptor()
   @Delete(':uuid')
   delete(
     @Param('uuid') uuid: string,
