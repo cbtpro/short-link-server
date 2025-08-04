@@ -3,7 +3,6 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from './config/configuration';
-import EncryptionInterceptor from './interceptor/encryption.interceptor';
 import LoggingInterceptor from './interceptor/logging.interceptor';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { EncryptionService } from '@/services/encryption.service';

@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FastifyReply, FastifyRequest, FastifyRequestContext } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { UsersService } from '@/users/users.service';
 import { User } from '@/users/users.entity';
 import { Public } from '@/common/decorator/public.decorator';
@@ -25,10 +25,6 @@ import { BaseResponseDto } from '@/common/dto/base-response.dto';
 import { LocalAuthGuard } from '@/auth/local-auth.guard';
 import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
 import { SkipResponseInterceptor } from '@/common/interceptor/skip-response.interceptor.decorator';
-
-interface RequestWithCookies extends FastifyRequest {
-  cookies: Record<string, string>;
-}
 
 @Controller()
 export class UsersController {
@@ -81,12 +77,12 @@ export class UsersController {
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
-  async login(
+  login(
     @Request() req: AuthenticatedRequest<User>,
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
     const user = req.user;
-    const authInfo = await this.authService.signIn(user);
+    const authInfo = this.authService.signIn(user);
     const { accessToken, refreshToken } = authInfo;
     const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 } = getJwtConstants(
       this.configService,

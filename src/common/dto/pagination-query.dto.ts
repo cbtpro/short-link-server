@@ -1,5 +1,11 @@
 import { Transform, Type } from 'class-transformer';
-import { IsOptional, IsEnum, IsNumber, IsString, IsIn, ValidateNested, IsArray } from 'class-validator';
+import {
+  IsOptional,
+  IsEnum,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
 export enum OrderType {
   ASC = 'ASC',
@@ -10,7 +16,15 @@ export class SortItem {
   @IsString()
   field: string;
 
-  @Transform(({ value }) => value?.toUpperCase())
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      const upper = value.toUpperCase();
+      return upper === 'ASC' || upper === 'DESC'
+        ? (upper as OrderType)
+        : undefined;
+    }
+    return undefined;
+  })
   @IsEnum(OrderType)
   order: OrderType;
 }

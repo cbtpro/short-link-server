@@ -6,7 +6,6 @@ import { AuthService } from './auth.service';
 import { getJwtConstants } from './constants';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UsersService } from '@/users/users.service';
 import { UsersModule } from '@/users/users.module';
 
 @Module({
@@ -27,15 +26,11 @@ import { UsersModule } from '@/users/users.module';
       },
     }),
   ],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-  ],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   /**
    * 导出给其他模块用
    */
   exports: [AuthService, JwtStrategy],
   controllers: [],
 })
-export class AuthModule { }
+export class AuthModule {}

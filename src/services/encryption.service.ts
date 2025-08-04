@@ -23,7 +23,10 @@ export class EncryptionService {
   }
 
   decryptData(ciphertext: string): any {
-    const bytes = CryptoJS.AES.decrypt(ciphertext, this.secrityConfig['secret_key']);
+    const bytes = CryptoJS.AES.decrypt(
+      ciphertext,
+      this.secrityConfig['secret_key'],
+    );
     return bytes.toString(CryptoJS.enc.Utf8);
   }
 }

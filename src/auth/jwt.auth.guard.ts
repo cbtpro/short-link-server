@@ -1,4 +1,8 @@
-import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '@/common/decorator/public.decorator';
@@ -24,11 +28,27 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
     return super.canActivate(context);
   }
-  handleRequest(err: any, user: any, info: any) {
+  handleRequest<IUser>(
+    err: any,
+    user: IUser,
+    info: any,
+    context: ExecutionContext,
+    status?: any,
+  ): IUser {
     // 可以抛出一个基于info或者err参数的异常
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
+    console.log(
+      'user',
+      user,
+      'info',
+      info,
+      // 'context',
+      // context,
+      'status',
+      status,
+    );
     return user;
   }
 }

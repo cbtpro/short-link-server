@@ -1,7 +1,11 @@
 import ms from 'ms';
-import type { StringValue } from "ms";
+import type { StringValue } from 'ms';
 
-export function getExpireTime(duration: StringValue): { expireDate: Date; expireAt: string; expireInSeconds: number; } {
+export function getExpireTime(duration: StringValue): {
+  expireDate: Date;
+  expireAt: string;
+  expireInSeconds: number;
+} {
   const msValue = ms(duration);
   if (typeof msValue !== 'number') {
     throw new Error('Invalid duration format');

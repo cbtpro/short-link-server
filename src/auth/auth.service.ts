@@ -15,10 +15,7 @@ export class AuthService {
     private usersService: UsersService,
   ) {}
 
-  private generateTokens(payload: {
-    username: string;
-    uuid: string;
-  }): IAuthInfo {
+  private generateTokens(payload: IUser): IAuthInfo {
     const authConfig = this.configService.get<IAuthConfig>('auth');
     const {
       jwtAccessSecret,
@@ -58,7 +55,7 @@ export class AuthService {
     return plainToClass(User, user);
   }
   signIn(user: User) {
-    const payload = { username: user.username, uuid: user.uuid };
+    const payload = { username: user.username, uuid: user.uuid } as IUser;
 
     return this.generateTokens(payload);
   }
@@ -80,7 +77,7 @@ export class AuthService {
       const newPayload = {
         username: user.username,
         uuid: user.uuid,
-      };
+      } as IUser;
 
       return this.generateTokens(newPayload);
     } catch (error) {

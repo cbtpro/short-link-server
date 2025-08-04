@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Not, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { comparePassword } from '../utils/bcrypt';
 import { User } from './users.entity';
 import { plainToClass } from 'class-transformer';
@@ -101,9 +101,13 @@ export class UsersService {
       // 返回前转换下，去除敏感信息如密码
       return plainToClass(User, newUser);
     } catch (error) {
-      await queryRunner.rollbackTransaction(); // 失败回滚
-      console.error('[registerNewUser]', error);
-      throw new ForbiddenException(error.message || '注册用户失败');
+      // 发生错误时，回滚数据库事务
+      await queryRunner.rollbackTransaction();
+      // 打印错误日志
+      console.error('[createUser]', error);
+
+      // 抛出内部服务器错误异常，表示新增用户失败
+      throw new InternalServerErrorException(error, '新增用户失败');
     } finally {
       await queryRunner.release(); // 释放资源
     }

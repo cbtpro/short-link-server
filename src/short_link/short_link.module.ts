@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ShortLinkService } from './short_link.service';
@@ -16,9 +15,7 @@ import { SnowflakeModule } from '@/common/snowflake/snowflake.module';
     SnowflakeModule,
     // OriginalLinkModule,
   ],
-  providers: [
-    ShortLinkService,
-  ],
+  providers: [ShortLinkService],
   controllers: [ShortLinkController],
 })
-export class ShortLinkModule { }
+export class ShortLinkModule {}

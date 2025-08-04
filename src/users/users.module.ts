@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersService } from './users.service';
@@ -8,7 +7,6 @@ import { AuthService } from '@/auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { SnowflakeModule } from '@/common/snowflake/snowflake.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthModule } from '@/auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { getJwtConstants } from '@/auth/constants';
 import { LocalStrategy } from '@/auth/local.strategy';
@@ -39,4 +37,4 @@ import { LocalStrategy } from '@/auth/local.strategy';
   exports: [UsersService, AuthService],
   controllers: [UsersController],
 })
-export class UsersModule { }
+export class UsersModule {}

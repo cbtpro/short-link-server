@@ -1,14 +1,14 @@
-import { getExpireTime } from "@/utils/time";
-import { ConfigService } from "@nestjs/config";
-import type { StringValue } from "ms";
+import { getExpireTime } from '@/utils/time';
+import { ConfigService } from '@nestjs/config';
+import type { StringValue } from 'ms';
 
 export const getJwtConstants = (configService: ConfigService) => {
   const authConfig = configService.get<IAuthConfig>('auth');
   const {
-    jwtAccessSecret = "access-secret",
-    jwtRefreshSecret = "refresh-secret",
-    jwtAccessExpiresIn = "15m",
-    jwtRefreshExpiresIn = "7d",
+    jwtAccessSecret = 'access-secret',
+    jwtRefreshSecret = 'refresh-secret',
+    jwtAccessExpiresIn = '15m',
+    jwtRefreshExpiresIn = '7d',
   } = authConfig ?? {};
   const {
     expireDate: jwtAccessExpiresInDate,

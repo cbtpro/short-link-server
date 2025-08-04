@@ -7,4 +7,4 @@ import { AuthGuard } from '@nestjs/passport';
  * 使用用户名和密码（比如来自 body）验证用户身份
  */
 @Injectable()
-export class LocalAuthGuard extends AuthGuard('local') { }
+export class LocalAuthGuard extends AuthGuard('local') {}

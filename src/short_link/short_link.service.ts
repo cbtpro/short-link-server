@@ -70,7 +70,7 @@ export class ShortLinkService {
       console.error('[createShortLink]', error);
 
       // 抛出内部服务器错误异常，表示新增短链接失败
-      throw new InternalServerErrorException(error, '新增链接失败');
+      throw new InternalServerErrorException(error, '新增短链接失败');
     } finally {
       // 无论操作成功或失败，都释放查询运行器占用的资源
       await queryRunner.release();
