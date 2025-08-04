@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { UsersService } from '@/users/users.service';
@@ -25,11 +26,13 @@ import { BaseResponseDto } from '@/common/dto/base-response.dto';
 import { LocalAuthGuard } from '@/auth/local-auth.guard';
 import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
 import { SkipResponseInterceptor } from '@/common/interceptor/skip-response.interceptor.decorator';
+import { InjectRedis } from '@nestjs-modules/ioredis';
 
 @Controller()
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
+    @InjectRedis() private readonly redis: Redis,
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
   ) {}
@@ -77,7 +80,7 @@ export class UsersController {
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
-  login(
+  async login(
     @Request() req: AuthenticatedRequest<User>,
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
@@ -87,6 +90,13 @@ export class UsersController {
     const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 } = getJwtConstants(
       this.configService,
     );
+    await this.redis.set(
+      `login:user:${user.uuid}`,
+      JSON.stringify(user),
+      'EX',
+      jwtRefreshExpireInSeconds,
+    );
+
     response.code(200).setCookie('refreshToken', refreshToken as string, {
       // domain: 'example.com', // same options as before
       path: '/',
@@ -122,10 +132,17 @@ export class UsersController {
     if (!oldRefreshToken) {
       throw new UnauthorizedException('未提供刷新令牌');
     }
-    const authInfo = await this.authService.refreshToken(oldRefreshToken);
+    const { authInfo, user } =
+      await this.authService.refreshToken(oldRefreshToken);
     const { accessToken, refreshToken = '' } = authInfo;
     const { jwtRefreshExpireInSeconds = 7 * 24 * 60 * 60 } = getJwtConstants(
       this.configService,
+    );
+    await this.redis.set(
+      `login:user:${user.uuid}`,
+      JSON.stringify(user),
+      'EX',
+      jwtRefreshExpireInSeconds,
     );
     response.code(200).setCookie('refreshToken', refreshToken, {
       // domain: 'example.com', // same options as before

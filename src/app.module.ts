@@ -16,6 +16,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { JwtAuthGuard } from '@/auth/jwt.auth.guard';
 import { AllExceptionsFilter } from '@/common/interceptor/all-exceptions.filter';
 import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ResponseInterceptor } from '@/common/interceptor/response.interceptor';
         };
       },
     }),
+    RedisModule,
     AuthModule,
     UsersModule,
     OriginalLinkModule,

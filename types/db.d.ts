@@ -9,8 +9,9 @@ interface IDBConfig {
   };
 
   redis: {
-    database: string;
-    port: string;
-    db: string;
+    type: 'single' | 'cluster';
+    host: string;
+    port: number;
+    db: number;
   };
 }

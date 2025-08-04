@@ -79,7 +79,7 @@ export class AuthService {
         uuid: user.uuid,
       } as IUser;
 
-      return this.generateTokens(newPayload);
+      return { authInfo: this.generateTokens(newPayload), user };
     } catch (error) {
       console.error(error);
       // 只抛简洁信息，避免泄露内部堆栈

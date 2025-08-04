@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
+    "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
@@ -36,6 +37,7 @@
     "crypto-js": "^4.2.0",
     "fastify": "^5.4.0",
     "flake-idgen": "^1.4.0",
+    "ioredis": "^5.7.0",
     "js-yaml": "^4.1.0",
     "ms": "3.0.0-canary.1",
     "mysql2": "^3.14.2",
@@ -99,5 +101,5 @@
   "engines": {
     "node": "^v22.17.0"
   },
-  "packageManager": "pnpm@10.13.1"
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }
